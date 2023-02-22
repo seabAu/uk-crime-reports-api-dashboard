@@ -1,0 +1,262 @@
+
+    const queryConfig = [
+        {
+            "id": "crimes-no-location",
+            "label": "Get Crime Data (No Location)",
+            "apiCall": "getCrimeReports(category, force, date)",
+            "apiValues": [
+                {category}, {force}, {date}
+            ],
+            "form": {
+                "formOnSubmit": handleSearch,
+                "fields": [
+                    {
+                        "type": "select",
+                        "id": "date",
+                        "name": "date",
+                        "required": 1,
+                        "value": {date},
+                        "onChange": {(event)=> { return setDate( event.target.value )}},
+                        "disabled": {isFetching},
+                        "unsetOption": "Choose a specific month (Required)"
+                        "options": {
+                            date.map( ( option, index ) =>
+                            {
+                                return {
+                                    "key": `${index}`,
+                                    "value": `${ option.value }`,
+                                    "label": `${ option.key }`
+                                };
+                            } )
+                        }
+                    },
+                    
+                    {
+                        "type": "select",
+                        "id": "category",
+                        "name": "category",
+                        "required": 1,
+                        "value": {category},
+                        "onChange": {(event)=> { return setCategory( event.target.value )}},
+                        "disabled": {isFetching},
+                        "isInvalid": {categoryIsInvalid},
+                        "unsetOption": "Select Crime Category (Required)"
+                        "options": {
+                            categories.map( ( category, index ) =>
+                            {
+                                return {
+                                    "key": `${index}`,
+                                    "value": `${ category.url }`,
+                                    "label": `${ category.name }`
+                                };
+                            } )
+                        }
+                    },
+                    
+                    {
+                        "type": "select",
+                        "id": "force",
+                        "name": "force",
+                        "required": 1,
+                        "value": {force},
+                        "onChange": {(event)=> { return setForce(event.target.value)}},
+                        "disabled": {isFetching},
+                        "isInvalid": {categoryIsInvalid},
+                        "unsetOption": "Select Police Force (Required)"
+                        "options": {
+                            forces.map( ( force, index ) =>
+                            {
+                                return {
+                                    "key": `${index}`,
+                                    "value": `${ force.id }`,
+                                    "label": `${ force.name }`
+                                };
+                            } )
+                        }
+                    },
+                    
+                ],
+            }
+        },
+        {
+            "id": "crimes-at-location",
+            "label": "Get Crime Data (At Location)",
+            "apiCall": "getCrimeReportsAtLocation(latitude, longitude)",
+            "apiValues": [
+                {latitude}, {longitude}
+            ],
+            // Provide the lat and long inputs as entry fields, but allow the user to fill it in via provided 
+            // select elements for the force -> force-neighborhood -> force-neighborhood-data -> lat/long.
+            "form": {
+                "formOnSubmit": handleSearchByLocation,
+                "fields": [
+                    {
+                        "type": "select",
+                        "id": "force",
+                        "name": "force",
+                        "required": 1,
+                        "value": {force},
+                        "onChange": {(event)=> { return setForce(event.target.value)}},
+                        "disabled": {isFetching},
+                        "isInvalid": {categoryIsInvalid},
+                        "unsetOption": "Select Police Force (Required)"
+                        "options": {
+                            forces.map( ( force, index ) =>
+                            {
+                                return {
+                                    "key": `${index}`,
+                                    "value": `${ force.id }`,
+                                    "label": `${ force.name }`
+                                };
+                            } )
+                        }
+                    },
+                    {
+                        "type": "select",
+                        "id": "forceNeighborhood",
+                        "name": "forceNeighborhood",
+                        "required": 1,
+                        "value": {
+                                        forceNeighborhood !== undefined
+                                            ? forceNeighborhood.id != null
+                                                ? forceNeighborhood.id
+                                                : 0
+                                            : 0},
+                        "onChange": {(event) => {
+                                        // Update the neighborhood selected
+                                        ////// setForceNeighborhood( event.target.value );
+                                        setForceNeighborhood(
+                                            forceNeighborhoods.find(
+                                                (item) =>
+                                                    item.id ===
+                                                    event.target.value,
+                                            ),
+                                        );
+                                    }},
+                        "disabled": {isFetching},
+                        "isInvalid": {forceIsInvalid},
+                        "unsetOption": "Select Police Force Neighborhood (optional))"
+                        "options": {
+                            forceNeighborhoods.map( ( neighborhood, index ) =>
+                            {
+                                return {
+                                    "key": `${index}`,
+                                    "value": `${ neighborhood.id }`,
+                                    "label": `${ neighborhood.name }`
+                                };
+                            } )
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "id": "latitude",
+                        "name": "latitude",
+                        "required": 1,
+                        "disabled": {isFetching},
+                        "isInvalid": {forceIsInvalid},
+                    },
+                    {
+                        "type": "text",
+                        "id": "longitude",
+                        "name": "longitude",
+                        "required": 1,
+                        "disabled": {isFetching},
+                        "isInvalid": {forceIsInvalid},
+                    },
+                ],
+            }
+        },
+        {
+            "id": "stops-no-location",
+            "label": "Get Stops Data (No Location)",
+            "apiCall": "getStopReports(category, force, date)",
+            "apiValues": [
+                {category}, {force}, {date}
+            ],
+            "form": {
+                "formOnSubmit": handleSearch,
+                "fields": [
+                    {
+                        "type": "select",
+                        "id": "date",
+                        "name": "date",
+                        "required": 1,
+                    }
+                ],
+            }
+        },
+        {
+            "id": "stops-at-location",
+            "label": "Get Stops Data (At Location)",
+            "apiCall": "getStopReportsAtLocation(location_id, date)",
+            "apiValues": [
+                {location_id}, {date}
+            ],
+            "form": {
+                "formOnSubmit": handleSearchByLocation,
+                "fields": [
+                    {
+                        "type": "select",
+                        "id": "date",
+                        "name": "date",
+                        "required": 1,
+                    }
+                ],
+            }
+        },
+    ];
+
+
+    [
+    {
+        "type": "select",
+        "id": "date",
+        "name": "date",
+        "required": 1,
+        "value": {
+            "date": "2022-9"
+        },
+        "onChange": {},
+        "disabled": {
+            "isFetching": false
+        },
+        "unsetOption": "Choose a specific month (Required)",
+        "options": {}
+    },
+    {
+        "type": "select",
+        "id": "category",
+        "name": "category",
+        "required": 1,
+        "value": {
+            "category": ""
+        },
+        "onChange": {},
+        "disabled": {
+            "isFetching": false
+        },
+        "isInvalid": {
+            "categoryIsInvalid": false
+        },
+        "unsetOption": "Select Crime Category (Required)",
+        "options": {}
+    },
+    {
+        "type": "select",
+        "id": "force",
+        "name": "force",
+        "required": 1,
+        "value": {
+            "force": ""
+        },
+        "onChange": {},
+        "disabled": {
+            "isFetching": false
+        },
+        "isInvalid": {
+            "categoryIsInvalid": false
+        },
+        "unsetOption": "Select Police Force (Required)",
+        "options": {}
+    }
+]
