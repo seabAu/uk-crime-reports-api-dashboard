@@ -10,6 +10,7 @@ function Select({
     optionsConfig,
     onChange,
     disabled,
+    multiple,
 }) {
     // console.log(
     //     "Select(): ",
@@ -22,6 +23,7 @@ function Select({
     //     optionsConfig,
     //     onChange,
     //     disabled,
+    //     multiple
     // );
     return (
         <div className="input-field input-field-select">
@@ -35,7 +37,8 @@ function Select({
                 {
                     //// console.log( "Select: onchange: event = ", event );
                     onChange(event.target.value);
-                }}
+                } }
+                multiple={multiple === 'multiple' ? 'multiple' : ''}
                 disabled={disabled ? disabled : false}>
                 <option value="">{unsetOption}</option>
                 {optionsConfig.map((option, index) => {

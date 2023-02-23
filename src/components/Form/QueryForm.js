@@ -5,7 +5,7 @@ function QueryForm ( { children, name, id, onSubmit, onChange, model, disabled, 
 {
     // console.log("QueryForm() Init: ", name, id, onSubmit, onChange, model, model.fields);
     return (
-        <div className="input-field input-field-select">
+        <div className="">
             <form
                 onSubmit={(event) => {
                     onSubmit(event);
@@ -37,6 +37,7 @@ function QueryForm ( { children, name, id, onSubmit, onChange, model, disabled, 
                                                 },
                                             )
                                         }
+                                        multiple={field.multiple}
                                         disabled={isFetching}
                                         onChange={field.onChange}></Select>
                                 );
@@ -71,13 +72,16 @@ function QueryForm ( { children, name, id, onSubmit, onChange, model, disabled, 
                             } else return <div></div>;
                         })
                 }
-                <button
-                    appearance="primary"
-                    //iconBefore={SearchIcon}
-                    size="large"
-                    disabled={isFetching}>
-                    {isFetching ? "Searching..." : "Search"}
-                </button>
+                <div class="form-submit-container">
+                    <button
+                        appearance="primary"
+                        className="button button-form-submit"
+                        //iconBefore={SearchIcon}
+                        size="large"
+                        disabled={isFetching}>
+                        {isFetching ? "Searching..." : "Search"}
+                    </button>
+                </div>
             </form>
         </div>
     );

@@ -31,6 +31,7 @@ const Sidebar = ({
     onSetForceNeighborhoodGetData,
     handleSearch,
     handleSearchByLocation,
+    handleSequentialSearch,
     categoryIsInvalid,
     forceIsInvalid,
     isFetching,
@@ -91,28 +92,6 @@ const Sidebar = ({
         }
     };
 
-    const formUpdateDate = (event) => {
-        setDate( [event.target.value] );
-    };
-    
-    const formUpdateForce = (event) => {
-        setForce( event.target.value );
-    };
-    
-    const formUpdateCategory = (event) => {
-        setCategory(event.target.value);
-    };
-    
-    const formUpdateNeighborhood = (event) => {
-        console.log("formUpdateNeighborhood: ", event);
-        setForceNeighborhood(
-            forceNeighborhoods.find((item) => {
-                console.log("formUpdateNeighborhood: ", item);
-                return item.id === event;
-            }),
-        );
-    };
-
     let DateOptions = getDateOptions();
     let CategoryOptions = getCategoryOptions();
     let ForceOptions = getForceOptions();
@@ -133,18 +112,15 @@ const Sidebar = ({
                         name: "date",
                         required: 1,
                         value: date,
+                        multiple: "multiple",
                         // onChange: (event)=>formUpdateDate( event ),
-                        onChange: ( value ) =>
-                        {
-                            if ( value === "all_dates" )
-                            {
+                        onChange: (value) => {
+                            if (value === "all_dates") {
                                 // Get all but the first, which is "all_dates". API won't know what to do with that.
                                 //setDate(dates.splice(1, -1));
-                                setDate( value );
-                            }
-                            else
-                            {
-                                setDate( value );
+                                setDate(value);
+                            } else {
+                                setDate(value);
                             }
                         },
                         //onChange: (event) => {setDate(event.target.value);},
@@ -159,6 +135,7 @@ const Sidebar = ({
                         name: "category",
                         required: 1,
                         value: category,
+                        multiple: "",
                         // onChange: (event) => {setCategory(event.target.value);},
                         onChange: setCategory,
                         disabled: { isFetching },
@@ -173,8 +150,78 @@ const Sidebar = ({
                         name: "force",
                         required: 1,
                         value: force,
+                        multiple: "",
                         // onChange: (event) => {setForce(event.target.value);}, // setForce,
                         onChange: setForce,
+                        disabled: { isFetching },
+                        isInvalid: { categoryIsInvalid },
+                        unsetOption: "Select Police Force*",
+                        options: ForceOptions,
+                    },
+                ],
+            },
+        },
+        {
+            id: "crimes-no-location-all-dates",
+            label: "Get Crime Data (No Location, All Dates)",
+            apiCall: "getCrimeReports(category, force, date)",
+            apiValues: [category, force, date],
+            form: {
+                formOnSubmit: handleSequentialSearch,
+                fields: [
+                    {
+                        type: "select",
+                        id: "date",
+                        name: "date",
+                        required: 1,
+                        value: [date],
+                        // onChange: (event)=>formUpdateDate( event ),
+                        onChange: ( value ) =>
+                        {
+                            if ( value !== '' && value !== undefined && value !== null )
+                            {
+                                if (date.indexOf(value) > -1) {
+                                    setDate(
+                                        date.filter((item) => {
+                                            return item !== value;
+                                        }),
+                                    );
+                                } else {
+                                    setDate(date.concat(value));
+                                }
+                            }
+                        },
+                        //onChange: (event) => {setDate(event.target.value);},
+                        multiple: "multiple",
+                        disabled: { isFetching },
+                        unsetOption: "Select month*",
+                        options: DateOptions,
+                    },
+
+                    {
+                        type: "select",
+                        id: "category",
+                        name: "category",
+                        required: 1,
+                        value: category,
+                        // onChange: (event) => {setCategory(event.target.value);},
+                        onChange: setCategory,
+                        multiple: "",
+                        disabled: { isFetching },
+                        isInvalid: { categoryIsInvalid },
+                        unsetOption: "Select Category*",
+                        options: CategoryOptions,
+                    },
+
+                    {
+                        type: "select",
+                        id: "force",
+                        name: "force",
+                        required: 1,
+                        value: force,
+                        // onChange: (event) => {setForce(event.target.value);}, // setForce,
+                        onChange: setForce,
+                        multiple: "",
                         disabled: { isFetching },
                         isInvalid: { categoryIsInvalid },
                         unsetOption: "Select Police Force*",
@@ -205,6 +252,7 @@ const Sidebar = ({
                         // onChange: (event) => {setForce(event.target.value);},
                         onChange: setForce,
                         disabled: { isFetching },
+                        multiple: "",
                         isInvalid: { categoryIsInvalid },
                         unsetOption: "Select Police Force*",
                         options: ForceOptions,
@@ -214,30 +262,23 @@ const Sidebar = ({
                         id: "forceNeighborhood",
                         name: "forceNeighborhood",
                         required: 1,
-                        value: 
-                            forceNeighborhood,
-                            //(forceNeighborhood !== undefined)
-                            //    ? (forceNeighborhood.id != null)
-                            //        ? (forceNeighborhood.id)
-                            //        : 0
-                            //    : 0
-                        
-                        onChange: formUpdateNeighborhood,
-                        // onChange: ( event ) =>
-                        // {
-                        //     console.log( "Setforceneighborhood: ", event );
-                        //     setForceNeighborhood(
-                        //         forceNeighborhoods.find( ( item ) =>
-                        //         {
-                        //             console.log( item );
-                        //             return ( item.id === event.target.value );
-                        //         } )
-                        //     )
-                        // },
+                        value: forceNeighborhood.id,
+                        onChange: (event) => {
+                            console.log("formUpdateNeighborhood: ", event);
+                            setForceNeighborhood(
+                                forceNeighborhoods.find((item) => {
+                                    console.log(
+                                        "formUpdateNeighborhood: ",
+                                        item,
+                                    );
+                                    return item.id === event;
+                                }),
+                            );
+                        },
+                        multiple: "",
                         disabled: { isFetching },
                         isInvalid: { forceIsInvalid },
-                        unsetOption:
-                            "Select Police Force Neighborhood*",
+                        unsetOption: "Select Police Force Neighborhood*",
                         options: ForceNeighborhoodOptions,
                     },
                     {
@@ -248,7 +289,7 @@ const Sidebar = ({
                         disabled: { isFetching },
                         isInvalid: { forceIsInvalid },
                         value: neighborhoodCoordinates.latitude,
-                        onChange: (event)=>{
+                        onChange: (event) => {
                             setNeighborhoodCoordinates({
                                 latitude: event.target.value,
                                 longitude: neighborhoodCoordinates.latitude,
@@ -264,7 +305,7 @@ const Sidebar = ({
                         disabled: { isFetching },
                         isInvalid: { forceIsInvalid },
                         value: neighborhoodCoordinates.longitude,
-                        onChange: (event)=>{
+                        onChange: (event) => {
                             setNeighborhoodCoordinates({
                                 latitude: neighborhoodCoordinates.latitude,
                                 longitude: event.target.value,

@@ -4,7 +4,8 @@ import PropTypes from "prop-types";
 import Header from "./Header";
 import Dashboard from "./Dashboard";
 
-const Content = ({ children }) => {
+const Content = ( { children } ) =>
+{
     return (
         <Dashboard />
     );

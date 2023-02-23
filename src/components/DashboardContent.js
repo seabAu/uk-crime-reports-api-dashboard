@@ -85,6 +85,7 @@ const DashboardContent = ({
                     <Table
                         isVisible={showTable}
                         isFetching={isFetching}
+                        dataName={queryString}
                         // tableData={truncatedCrimeReportsList}
                         tableData={renderReportsList}
                         // entriesPerPage={entriesPerPage}
@@ -93,10 +94,10 @@ const DashboardContent = ({
                         // setPageNum={setPageNum}
                         // changePage={changePage}
                         hideColumns={[
-                            "location_type",
-                            "location",
-                            "context",
-                            "location_subtype",
+                            // "location_type",
+                            // "location",
+                            // "context",
+                            // "location_subtype",
                         ]}></Table>
                 )}
 

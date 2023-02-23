@@ -1,6 +1,5 @@
 import React from "react";
-import { Pane, Avatar, Heading } from "evergreen-ui";
-import logo from "../images/logo.svg";
+import logo from "../images/logo.png";
 
 const Header = ({toggleSidebar}) => {
     return (

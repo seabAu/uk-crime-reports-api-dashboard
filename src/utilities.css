@@ -123,16 +123,12 @@ a {
 a:hover {
     color: white;
 }
-.form-container {
-    padding: 4px;
-    width: 100%;
-    flex-direction: row;
-    align-self: flex-start;
-}
 #new-task-form {
     display: flex;
 }
 .form-container {
+    padding: 4px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -154,17 +150,25 @@ a:hover {
     width: 100%;
     height: 2rem;
 }
-.form-input#new-task-input {
-    flex: 1 1 0%;
-    background-color: var(--darker);
-    padding: 1rem;
-    border-radius: 1rem;
-    margin-right: 1rem;
-    color: var(--light);
-    font-size: var(--input-text-size);
+.flex-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: row;
+    align-content: center;
+    width: 100%;
 }
-.form-input#new-task-input::placeholder {
-    color: var(--gray);
+.flex-col {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    align-content: center;
+    width: 100%;
+}
+.input-field {
+    margin: 0;
+    padding: auto;
+    width: 100%;
 }
 input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="search"], textarea {
     display: inline-block;
@@ -416,6 +420,60 @@ input:focus+.checkbox, input:focus+.radio, input.focus+.checkbox, input.focus+.r
     border-color: rgb(221, 221, 221) transparent transparent;
     pointer-events: none;
     box-shadow: rgba(0, 0, 0, 0.498039) 0px -1px;
+}
+.dropdown {
+    position: relative;
+    display: block;
+    margin-top: 0.5em;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+select {
+    /* Make sure the select is wider than the container so we can clip the arrow */
+    /* Remove select styling */
+    appearance: none;
+    -webkit-appearance: none;
+    /* Ugly Firefox way of doing it */
+    -moz-appearance: window;
+    text-indent: 0.01px;
+    text-overflow: "";
+    /* Magic font size number to prevent iOS text zoom */
+    font-size: var(--input-text-size);
+    font-weight: bold;
+    border: none;
+    color: #444;
+    outline: none;
+    /* Padding works surpringly well */
+    padding: 0.125rem 0.8rem;
+    margin: 0.2em;
+    width: 100%;
+    font-family: helvetica, sans-serif;
+    border: 1px solid #bbb;
+    border-radius: 0.3em;
+    box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
+    background: #f3f3f3;
+    /* Old browsers */
+    background: -moz-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
+    /* FF3.6+ */
+    background: -webkit-gradient( linear, left top, left bottom, color-stop(0%, #ffffff), color-stop(100%, #e5e5e5));
+    /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
+    /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
+    /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, #ffffff 0%, #e5e5e5 100%);
+    /* IE10+ */
+    background: linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
+    /* W3C */
+    filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5', GradientType=0);
+    /* IE6-9 */
+}
+
+/* This hides native dropdown button arrow in IE */
+
+select::-ms-expand {
+    display: none;
 }
 .switch {
     display: inline-block;
@@ -1074,60 +1132,6 @@ label {
     font-size: calc(var(--input-text-size) * 1.125);
     color: #777;
 }
-.dropdown {
-    position: relative;
-    display: block;
-    margin-top: 0.5em;
-    overflow: hidden;
-    width: 100%;
-    max-width: 100%;
-}
-select {
-    /* Make sure the select is wider than the container so we can clip the arrow */
-    /* Remove select styling */
-    appearance: none;
-    -webkit-appearance: none;
-    /* Ugly Firefox way of doing it */
-    -moz-appearance: window;
-    text-indent: 0.01px;
-    text-overflow: "";
-    /* Magic font size number to prevent iOS text zoom */
-    font-size: var(--input-text-size);
-    font-weight: bold;
-    border: none;
-    color: #444;
-    outline: none;
-    /* Padding works surpringly well */
-    padding: 0.125rem 0.8rem;
-    margin: 0.2em;
-    width: 100%;
-    font-family: helvetica, sans-serif;
-    border: 1px solid #bbb;
-    border-radius: 0.3em;
-    box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
-    background: #f3f3f3;
-    /* Old browsers */
-    background: -moz-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
-    /* FF3.6+ */
-    background: -webkit-gradient( linear, left top, left bottom, color-stop(0%, #ffffff), color-stop(100%, #e5e5e5));
-    /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
-    /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
-    /* Opera 11.10+ */
-    background: -ms-linear-gradient(top, #ffffff 0%, #e5e5e5 100%);
-    /* IE10+ */
-    background: linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
-    /* W3C */
-    filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5', GradientType=0);
-    /* IE6-9 */
-}
-
-/* This hides native dropdown button arrow in IE */
-
-select::-ms-expand {
-    display: none;
-}
 
 /* Custom arrow - could be an image, SVG, icon font, etc. */
 
@@ -1167,51 +1171,39 @@ select:-moz-focusring {
 
 /* These are just demo button-y styles, style as you like */
 
+
+/*
+
 .button {
     border: 1px solid #bbb;
     border-radius: 0.3em;
     box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
     background: #f3f3f3;
-    /* Old browsers */
     background: -moz-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
-    /* FF3.6+ */
     background: -webkit-gradient( linear, left top, left bottom, color-stop(0%, #ffffff), color-stop(100%, #e5e5e5));
-    /* Chrome,Safari4+ */
     background: -webkit-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
-    /* Chrome10+,Safari5.1+ */
     background: -o-linear-gradient( top, #ffffff 0%, #e5e5e5 100%);
-    /* Opera 11.10+ */
     background: -ms-linear-gradient(top, #ffffff 0%, #e5e5e5 100%);
-    /* IE10+ */
     background: linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
-    /* W3C */
     filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5', GradientType=0);
-    /* IE6-9 */
 }
-.flex-row {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-direction: row;
-    align-content: center;
-    width: 100%;
-}
-.flex-col {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    align-content: center;
-    width: 100%;
-}
-.input-field {
-    margin: 0;
-    padding: auto;
-    width: 100%;
-}
+*/
+
 textarea {
     white-space: pre;
     overflow-wrap: break-word;
     width: 100%;
     height: auto;
     max-height: 100px;
+}
+.button-form-submit {
+    width: 50%;
+    align-self: center;
+}
+.form-submit-container {
+    display: flex;
+    flex-direction: col;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
 }

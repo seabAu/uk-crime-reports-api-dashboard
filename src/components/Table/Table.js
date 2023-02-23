@@ -53,7 +53,6 @@ function Table({
             }, 10);
         }
     };
-
     const getPageButtons = (dataLen, page, numPerPage) => {
         // console.log("getPageButtons(): ", pageNum);
         let buttons = [];

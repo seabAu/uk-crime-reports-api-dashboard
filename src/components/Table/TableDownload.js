@@ -3,6 +3,7 @@ import { ExportToCsv } from "export-to-csv";
 function TableDownload ( { dataName, tableData, downloadFileType } )
 {
     const options = {
+        filename:`UK-Crime-API-Results_${dataName}`,
         fieldSeparator: ",",
         quoteStrings: '"',
         decimalSeparator: ".",
@@ -28,7 +29,7 @@ function TableDownload ( { dataName, tableData, downloadFileType } )
         Object.keys( obj ).forEach( ( key ) =>
         {
             // Sanitize the value if it's null or undefined.
-            if ( obj[ key ] === null || obj[ key ] === undefined )
+            if ( obj[ key ] === null || obj[ key ] === undefined || obj[key] === '' )
             {
                 obj[ key ] = "-";
             }
@@ -56,15 +57,14 @@ function TableDownload ( { dataName, tableData, downloadFileType } )
         // console.log("flatMapObjText(): ", obj);
         return objArray.map((obj, index) => {
             if (typeof obj === "object") {
-                // console.log(
-                //     "flattenObject, ",
-                //     "obj = ",
-                //     obj,
-                //     " \n\n\n flattened object = ",
-                //     flattenObject(obj),
-                // );
                 // return flatMapObj(obj, "_"); // flatMapObjText(obj);
                 // return flattenObject(obj);
+                console.log(
+                    "FlattenMapObjArray: Original object: ",
+                    obj,
+                    "\n\nFlattened object: ",
+                    flattenObj(obj),
+                );
                 return flattenObj(obj);
             } else if (Array.isArray(obj)) {
                 return [...flatMapObjArray(obj)];
@@ -91,7 +91,8 @@ function TableDownload ( { dataName, tableData, downloadFileType } )
             .join("");
     };
 
-    const download = (data, filetype) => {
+    const download = ( data, filetype ) =>
+    {
         const flattenedData = flatMapObjArray(data);
         const csvExporter = new ExportToCsv(options);
         csvExporter.generateCsv(flattenedData);

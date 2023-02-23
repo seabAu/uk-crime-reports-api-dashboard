@@ -1,15 +1,16 @@
 {
-    "name": "crime-reports-uk",
-    "version": "1.6.0",
+    "name": "uk-crime-reports-api-dashboard",
+    "version": "0.5",
     "private": true,
     "author": {
-        "name": "Safdar Jamal",
-        "url": "https://safdarjamal.github.io"
+        "name": "Sean Brown",
+        "url": "https://seabAu.github.com/"
     },
     "dependencies": {
         "@testing-library/jest-dom": "^5.16.5",
         "@testing-library/react": "^13.4.0",
         "@testing-library/user-event": "^13.5.0",
+        "axios": "^1.3.4",
         "copy-lite": "^0.1.2",
         "evergreen-ui": "^7.0.1",
         "export-to-csv": "^0.2.1",
