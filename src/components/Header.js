@@ -1,26 +1,26 @@
 import React from "react";
+import { FiMenu } from "react-icons/fi";
 import logo from "../images/logo.png";
 
-const Header = ({toggleSidebar}) => {
+const Header = ({toggleSidebar, showTitle = true}) => {
     return (
         <div className="page-header">
             <div className="page-header-left">
                 <div className="page-header-icon-container">
-                    <img
-                        className="page-header-icon"
-                        src={logo}
-                        alt="Icon"
-                        onClick={ () =>
-                        {
-                            toggleSidebar()
-                        }}></img>
+                    <div className="menu-toggle">
+                        <FiMenu
+                            className="menu-toggle-button"
+                            style={{ width: 20, height: 20 }}
+                            onClick={() => {
+                                toggleSidebar();
+                            }}
+                        />
+                    </div>
                 </div>
                 <div className="page-header-title-container">
-                    <div className="page-header-title">
-                        <h1 className="page-header-title">
-                            Browse Open Data about Crime and Policing in the UK
-                        </h1>
-                    </div>
+                    {showTitle && (<h1 className="page-header-title">
+                        Browse Open Data about Crime and Policing in the UK
+                    </h1>)}
                 </div>
             </div>
             <div className="page-header-center"></div>
@@ -36,6 +36,13 @@ const Header = ({toggleSidebar}) => {
 export default Header;
 
 /*
+                    <img
+                        className="page-header-icon"
+                        src={logo}
+                        alt="Icon"
+                        onClick={() => {
+                            toggleSidebar();
+                        }}></img>
             <Pane
                 elevation={1}
                 display="flex"

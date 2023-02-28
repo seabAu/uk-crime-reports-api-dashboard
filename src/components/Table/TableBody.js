@@ -30,59 +30,71 @@ function TableBody({
 
     return (
         <tbody>
-            {tableData.map((object, index) => {
+            {tableData.map((object, rowIndex) => {
                 return (
                     <tr
-                        id={`row-${index}`}
+                        key={`table-row-${rowIndex}`}
+                        id={`table-row-${rowIndex}`}
                         className={`row-${
-                            index
+                            rowIndex
                             //getIsVisible(index, pageNum, entriesPerPage, [])
                             //    ? "row-visible"
                             //    : "row-hidden"
                         }`}
-                        onClick={(index) => {
-                            rowOnClick(index);
+                        onClick={(rowIndex) => {
+                            rowOnClick(rowIndex, object);
                         }}>
-                        {Object.entries(object).map((objProperty, index) => {
-                            let objKey = objProperty[0];
-                            let objValue = objProperty[1];
-                            if (
-                                typeof objValue === "object" &&
-                                objValue !== null
-                            ) {
-                                return (
-                                    <td
-                                        rowSpan="1"
-                                        className={`col-cell sub-table-container ${
-                                            hideColumns.includes(objKey)
-                                                ? " col-hidden"
-                                                : ""
-                                        }`}
-                                        onClick={(index) => {
-                                            cellOnClick(index);
-                                        }}>
-                                        <TableSubTable data={objValue}></TableSubTable>
-                                    </td>
-                                );
-                            } else {
-                                return (
-                                    <td
-                                        rowSpan="1"
-                                        className={`col-cell ${
-                                            hideColumns.includes(objKey)
-                                                ? " col-hidden"
-                                                : ""
-                                        }`}>
-                                        {objValue == null ||
-                                        objValue === undefined ||
-                                        objValue === " " ||
-                                        objValue === ""
-                                            ? "-"
-                                            : objValue}
-                                    </td>
-                                );
-                            }
-                        })}
+                        {Object.entries(object).map(
+                            (objProperty, cellIndex) => {
+                                let objKey = objProperty[0];
+                                let objValue = objProperty[1];
+                                if (
+                                    typeof objValue === "object" &&
+                                    objValue !== null
+                                ) {
+                                    return (
+                                        <td
+                                            key={`table-cell-${rowIndex}-${cellIndex}-${objKey}`}
+                                            id={`table-cell-${rowIndex}-${cellIndex}-${objKey}`}
+                                            rowSpan="1"
+                                            className={`col-cell sub-table-container ${
+                                                hideColumns.includes(objKey)
+                                                    ? " col-hidden"
+                                                    : ""
+                                            }`}
+                                            onClick={(cellIndex) => {
+                                                cellOnClick(
+                                                    cellIndex,
+                                                    objProperty,
+                                                );
+                                            }}>
+                                            <TableSubTable
+                                                parentKey={`${rowIndex}-${cellIndex}-${objKey}`}
+                                                data={objValue}></TableSubTable>
+                                        </td>
+                                    );
+                                } else {
+                                    return (
+                                        <td
+                                            key={`table-cell-${rowIndex}-${cellIndex}-${objKey}`}
+                                            id={`table-cell-${rowIndex}-${cellIndex}-${objKey}`}
+                                            rowSpan="1"
+                                            className={`col-cell ${
+                                                hideColumns.includes(objKey)
+                                                    ? " col-hidden"
+                                                    : ""
+                                            }`}>
+                                            {objValue == null ||
+                                            objValue === undefined ||
+                                            objValue === " " ||
+                                            objValue === ""
+                                                ? "-"
+                                                : objValue}
+                                        </td>
+                                    );
+                                }
+                            },
+                        )}
                     </tr>
                 );
             })}

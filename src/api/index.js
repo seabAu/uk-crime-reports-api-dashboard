@@ -1,7 +1,7 @@
 import axios, { isCancel, AxiosError } from "axios";
 
 const API_BASE = "https://data.police.uk/api";
-const API_DELAY = 200;
+const API_DELAY = Math.ceil(( 1 / 15 ) * 1000) + 50; // Add a little buffer
 
 const checkInputs = (inputs = []) => {
     for (var i = 0; i < inputs.length; i++) {
@@ -127,9 +127,9 @@ function getCrimeReportsMulti(category, force, date) {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             let res;
-            console.log(
-                `BEFORE fetch = (${category}, ${force}, ${date}) ${new Date()}`,
-            );
+            // console.log(
+            //     `getCrimeReportsMulti :: BEFORE fetch = (${category}, ${force}, ${date}) ${new Date()}`,
+            // );
             try {
                 res = fetch(
                     `${API_BASE}/crimes-no-location?category=${category}&force=${force}&date=${date}`,
@@ -146,16 +146,16 @@ function getCrimeReportsMulti(category, force, date) {
             } catch (error) {
                 if (error instanceof SyntaxError) {
                     // Unexpected token < in JSON
-                    console.log("There was a SyntaxError", error);
+                    console.log("getCrimeReportsMulti :: There was a SyntaxError :: ", error);
                 } else {
-                    console.log("There was an error", error);
+                    console.log("getCrimeReportsMulti :: There was an error :: ", error);
                 }
             }
             // .catch((error) => reject(error));
-            console.log(
-                `Resolved fetch = (${category}, ${force}, ${date})! ${new Date()}`,
-                res,
-            );
+            // console.log(
+            //     `getCrimeReportsMulti :: Resolved fetch = (${category}, ${force}, ${date})! ${new Date()}`,
+            //     res,
+            // );
         }, API_DELAY); // 67);
     });
 }
@@ -187,7 +187,12 @@ function getCrimeReports3(category, force, date) {
     });
 }
     
-const getCrimeReportsAtLocation = (latitude, longitude) => {
+const getCrimeReportsAtLocation = ( latitude, longitude ) =>
+{
+    // https://data.police.uk/docs/method/crimes-at-location/
+    // Requires: Either [date, location_id] OR [date, latitude, longitude]
+    // Example: https://data.police.uk/api/crimes-at-location?date=2017-02&location_id=884227
+    // Example: https://data.police.uk/api/crimes-at-location?date=2017-02&lat=52.629729&lng=-1.131592
     if (!checkInputs([latitude, longitude])) {
         return "ERR: INVALID/UNDEFINED INPUT";
     }
@@ -198,6 +203,88 @@ const getCrimeReportsAtLocation = (latitude, longitude) => {
             .catch((error) => reject(error));
     });
 };
+
+function getCrimeReportsByLocation(date, latitude, longitude) {
+    if (!checkInputs([date, latitude, longitude])) {
+        return "ERR: INVALID/UNDEFINED INPUT";
+    }
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            let res;
+            console.log(
+                `getCrimeReportsByLocation :: BEFORE fetch = (${date}, ${latitude}, ${longitude}) ${new Date()}`,
+            );
+            try {
+                res = fetch(
+                    `${API_BASE}/crimes-at-location?date=${date}&lat=${latitude}&lng=${longitude}`,
+                    {
+                        method: "GET",
+                        redirect: "manual",
+                        crossorigin: true,
+                        // mode: "no-cors",
+                    },
+                )
+                    .then((response) => response.json())
+                    .then((data) => resolve(data))
+                    .catch((error) => console.log(error));
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    // Unexpected token < in JSON
+                    console.log(
+                        "getCrimeReportsByLocation :: There was a SyntaxError :: ",
+                        error,
+                    );
+                } else {
+                    console.log(
+                        "getCrimeReportsByLocation :: There was an error :: ",
+                        error,
+                    );
+                }
+            }
+            // .catch((error) => reject(error));
+            console.log(
+                `getCrimeReportsByLocation :: Resolved fetch = (${date}, ${latitude}, ${longitude})! ${new Date()}`,
+                res,
+            );
+        }, API_DELAY); // 67);
+    });
+}
+
+function getCrimeReportsAtLocationMulti(latitude, longitude) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            let res;
+            // console.log(
+            //     `getCrimeReportsAtLocationMulti :: BEFORE fetch = (${latitude}, ${longitude}) ${new Date()}`,
+            // );
+            try {
+                res = fetch(`${API_BASE}/crimes-at-location?lat=${latitude}&lng=${longitude}`,
+                    {
+                        method: "GET",
+                        redirect: "manual",
+                        crossorigin: true,
+                        // mode: "no-cors",
+                    },
+                )
+                    .then((response) => response.json())
+                    .then((data) => resolve(data))
+                    .catch((error) => console.log(error));
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    // Unexpected token < in JSON
+                    console.log("getCrimeReportsAtLocationMulti :: There was a SyntaxError :: ", error);
+                } else {
+                    console.log("getCrimeReportsAtLocationMulti :: There was an error :: ", error);
+                }
+            }
+            // .catch((error) => reject(error));
+            // console.log(
+            //     `getCrimeReportsAtLocationMulti :: Resolved fetch = (${latitude}, ${longitude})! ${new Date()}`,
+            //     res,
+            // );
+        }, API_DELAY); // 67);
+    });
+}
 
 const getStopReports = (category, force, date) => {
     // https://data.police.uk/api/stops-street?lat=52.629729&lng=-1.131592&date=2018-06
@@ -380,7 +467,7 @@ const getCrimeOutcomes = (crime_id) => {
         return "ERR: INVALID/UNDEFINED INPUT";
     }
     return new Promise((resolve, reject) => {
-        fetch(`${API_BASE}/outcomes-for-crime?${crime_id}`)
+        fetch(`${API_BASE}/outcomes-for-crime/${crime_id}`)
             .then((response) => response.json())
             .then((data) => resolve(data))
             .catch((error) => reject(error));
@@ -398,6 +485,8 @@ export {
     getCrimeReports,
     getCrimeReportsMulti,
     getCrimeReportsAtLocation,
+    getCrimeReportsByLocation,
+    getCrimeReportsAtLocationMulti,
     getStopReports,
     getStopReportsAtLocation,
     getStopReportNoLocation,

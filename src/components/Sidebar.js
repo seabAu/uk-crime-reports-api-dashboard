@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import DebugFields from "./Form/DebugFields";
 import Select from "./Form/Select";
 import QueryForm from "./Form/QueryForm";
+import { FaDatabase, FaChartBar, FaMap, FaCog } from "react-icons/fa";
 
 const Sidebar = ({
     className,
@@ -30,20 +31,25 @@ const Sidebar = ({
     onSetForceGetNeighborhoods,
     onSetForceNeighborhoodGetData,
     handleSearch,
+    handleSearchAtLocation,
     handleSearchByLocation,
     handleSequentialSearch,
+    handleSequentialSearchByLocation,
+    handleSequentialSearchAllLocationsAllDates,
     categoryIsInvalid,
     forceIsInvalid,
     isFetching,
     showSidebar,
-} ) =>
-{
+    theme,
+    setTheme,
+    menu,
+    setMenu,
+}) => {
     // Form helper functions
     const getDateOptions = () => {
-        if ( dates )
-        {
+        if (dates) {
             let tempDates = dates;
-            
+
             return tempDates.map((option, index) => {
                 return {
                     key: `${index}`,
@@ -80,9 +86,10 @@ const Sidebar = ({
 
     const getForceNeighborhoodOptions = () => {
         // console.log("getForceNeighborhoodOptions(): ", forceNeighborhoods);
-        if ( forceNeighborhoods )
-        {
-            return forceNeighborhoods.map((neighborhood, index) => {
+        if (forceNeighborhoods) {
+            let neighborhoodsTemp = forceNeighborhoods;
+            // neighborhoodsTemp.unshift( { id: "all_neighborhoods", name: "All Neighborhoods" } );
+            return neighborhoodsTemp.map((neighborhood, index) => {
                 return {
                     key: `${index}`,
                     value: `${neighborhood.id}`,
@@ -108,21 +115,23 @@ const Sidebar = ({
                 fields: [
                     {
                         type: "select",
+                        label: "Choose a month",
                         id: "date",
                         name: "date",
-                        required: 1,
+                        required: true,
                         value: date,
                         multiple: "multiple",
                         // onChange: (event)=>formUpdateDate( event ),
-                        onChange: (value) => {
-                            if (value === "all_dates") {
-                                // Get all but the first, which is "all_dates". API won't know what to do with that.
-                                //setDate(dates.splice(1, -1));
-                                setDate(value);
-                            } else {
-                                setDate(value);
-                            }
-                        },
+                        onChange: setDate,
+                        // (value) => {
+                        //     if (value === "all_dates") {
+                        //         // Get all but the first, which is "all_dates". API won't know what to do with that.
+                        //         //setDate(dates.splice(1, -1));
+                        //         setDate(value);
+                        //     } else {
+                        //         setDate(value);
+                        //     }
+                        // },
                         //onChange: (event) => {setDate(event.target.value);},
                         disabled: { isFetching },
                         unsetOption: "Select month*",
@@ -131,9 +140,10 @@ const Sidebar = ({
 
                     {
                         type: "select",
+                        label: "Choose a category",
                         id: "category",
                         name: "category",
-                        required: 1,
+                        required: true,
                         value: category,
                         multiple: "",
                         // onChange: (event) => {setCategory(event.target.value);},
@@ -146,9 +156,10 @@ const Sidebar = ({
 
                     {
                         type: "select",
+                        label: "Choose a police force",
                         id: "force",
                         name: "force",
-                        required: 1,
+                        required: true,
                         value: force,
                         multiple: "",
                         // onChange: (event) => {setForce(event.target.value);}, // setForce,
@@ -171,26 +182,33 @@ const Sidebar = ({
                 fields: [
                     {
                         type: "select",
+                        label: "Choose a month",
                         id: "date",
                         name: "date",
-                        required: 1,
+                        required: true,
                         value: [date],
                         // onChange: (event)=>formUpdateDate( event ),
-                        onChange: ( value ) =>
-                        {
-                            if ( value !== '' && value !== undefined && value !== null )
-                            {
-                                if (date.indexOf(value) > -1) {
-                                    setDate(
-                                        date.filter((item) => {
-                                            return item !== value;
-                                        }),
-                                    );
-                                } else {
-                                    setDate(date.concat(value));
-                                }
-                            }
-                        },
+                        onChange: setDate,
+                        // ( value ) =>
+                        //     {
+                        //     if (
+                        //         value !== "" &&
+                        //         value !== undefined &&
+                        //         value !== null
+                        //     ) {
+                        //         if (date.indexOf(value) > -1) {
+                        //             setDate(
+                        //                 date.filter((item) => {
+                        //                     return item !== value;
+                        //                 }),
+                        //             );
+                        //         } else {
+                        //             setDate(date.concat(value));
+                        //         }
+                        //     }
+                        //
+                        // },
+                        // stateFunction: setDate,
                         //onChange: (event) => {setDate(event.target.value);},
                         multiple: "multiple",
                         disabled: { isFetching },
@@ -200,13 +218,14 @@ const Sidebar = ({
 
                     {
                         type: "select",
+                        label: "Choose a category",
                         id: "category",
                         name: "category",
-                        required: 1,
+                        required: true,
                         value: category,
                         // onChange: (event) => {setCategory(event.target.value);},
                         onChange: setCategory,
-                        multiple: "",
+                        // multiple: "",
                         disabled: { isFetching },
                         isInvalid: { categoryIsInvalid },
                         unsetOption: "Select Category*",
@@ -215,13 +234,14 @@ const Sidebar = ({
 
                     {
                         type: "select",
+                        label: "Choose a police force",
                         id: "force",
                         name: "force",
-                        required: 1,
+                        required: true,
                         value: force,
                         // onChange: (event) => {setForce(event.target.value);}, // setForce,
                         onChange: setForce,
-                        multiple: "",
+                        // multiple: "",
                         disabled: { isFetching },
                         isInvalid: { categoryIsInvalid },
                         unsetOption: "Select Police Force*",
@@ -231,7 +251,7 @@ const Sidebar = ({
             },
         },
         {
-            id: "crimes-at-location",
+            id: "crimes-at-location-no-date",
             label: "Get Crime Data (At Location)",
             apiCall: "getCrimeReportsAtLocation(latitude, longitude)",
             apiValues: [
@@ -241,17 +261,18 @@ const Sidebar = ({
             // Provide the lat and long inputs as entry fields, but allow the user to fill it in via provided
             // select elements for the force -> force-neighborhood -> force-neighborhood-data -> lat/long.
             form: {
-                formOnSubmit: handleSearchByLocation,
+                formOnSubmit: handleSearchAtLocation,
                 fields: [
                     {
                         type: "select",
+                        label: "Choose a police force",
                         id: "force",
                         name: "force",
-                        required: 1,
                         value: force,
                         // onChange: (event) => {setForce(event.target.value);},
                         onChange: setForce,
                         disabled: { isFetching },
+                        required: true,
                         multiple: "",
                         isInvalid: { categoryIsInvalid },
                         unsetOption: "Select Police Force*",
@@ -259,10 +280,15 @@ const Sidebar = ({
                     },
                     {
                         type: "select",
+                        label: "Choose a neighborhood",
                         id: "forceNeighborhood",
                         name: "forceNeighborhood",
-                        required: 1,
-                        value: forceNeighborhood.id,
+                        required: true,
+                        value: forceNeighborhood
+                            ? "id" in forceNeighborhood
+                                ? forceNeighborhood.id
+                                : ""
+                            : "",
                         onChange: (event) => {
                             console.log("formUpdateNeighborhood: ", event);
                             setForceNeighborhood(
@@ -283,35 +309,280 @@ const Sidebar = ({
                     },
                     {
                         type: "number",
+                        label: "Latitude",
                         id: "latitude",
                         name: "latitude",
-                        required: 1,
+                        required: true,
                         disabled: { isFetching },
                         isInvalid: { forceIsInvalid },
-                        value: neighborhoodCoordinates.latitude,
+                        value: neighborhoodCoordinates.latitude
+                            ? neighborhoodCoordinates.latitude
+                            : null,
+                        defaultValue: neighborhoodCoordinates.latitude
+                            ? null
+                            : neighborhoodCoordinates.latitude,
                         onChange: (event) => {
+                            console.log(
+                                "Latitude onchange :: ",
+                                event,
+                                event.target.value,
+                                neighborhoodCoordinates,
+                            );
                             setNeighborhoodCoordinates({
                                 latitude: event.target.value,
-                                longitude: neighborhoodCoordinates.latitude,
+                                longitude: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.longitude
+                                    : 0.0,
                             });
                         },
                         placeholder: `Latitude`,
                     },
                     {
                         type: "number",
+                        label: "Longitude",
                         id: "longitude",
                         name: "longitude",
-                        required: 1,
+                        required: true,
                         disabled: { isFetching },
                         isInvalid: { forceIsInvalid },
-                        value: neighborhoodCoordinates.longitude,
+                        value: neighborhoodCoordinates.longitude
+                            ? neighborhoodCoordinates.longitude
+                            : null,
+                        defaultValue: neighborhoodCoordinates.longitude
+                            ? null
+                            : neighborhoodCoordinates.longitude,
                         onChange: (event) => {
                             setNeighborhoodCoordinates({
-                                latitude: neighborhoodCoordinates.latitude,
+                                latitude: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.latitude
+                                    : 0.0,
                                 longitude: event.target.value,
                             });
                         },
                         placeholder: `Longitude`,
+                    },
+                ],
+            },
+        },
+        {
+            id: "crimes-at-location-with-dates",
+            label: "Get Crime Data (At Location)",
+            apiCall: "getCrimeReportsByLocation(date, latitude, longitude)",
+            apiValues: [
+                date,
+                neighborhoodCoordinates.latitude,
+                neighborhoodCoordinates.longitude,
+            ],
+            // Provide the lat and long inputs as entry fields, but allow the user to fill it in via provided
+            // select elements for the force -> force-neighborhood -> force-neighborhood-data -> lat/long.
+            form: {
+                formOnSubmit: handleSearchByLocation,
+                fields: [
+                    {
+                        type: "select",
+                        label: "Choose a month",
+                        id: "date",
+                        name: "date",
+                        required: true,
+                        value: date,
+                        multiple: "multiple",
+                        onChange: setDate,
+                        disabled: { isFetching },
+                        unsetOption: "Select month*",
+                        options: DateOptions,
+                    },
+
+                    {
+                        type: "select",
+                        label: "Choose a police force",
+                        id: "force",
+                        name: "force",
+                        value: force,
+                        onChange: setForce,
+                        disabled: { isFetching },
+                        required: true,
+                        multiple: "",
+                        isInvalid: { categoryIsInvalid },
+                        unsetOption: "Select Police Force*",
+                        options: ForceOptions,
+                    },
+                    {
+                        type: "select",
+                        label: "Choose a neighborhood",
+                        id: "forceNeighborhood",
+                        name: "forceNeighborhood",
+                        required: true,
+                        value: forceNeighborhood
+                            ? "id" in forceNeighborhood
+                                ? forceNeighborhood.id
+                                : ""
+                            : "",
+                        onChange: (event) => {
+                            console.log("formUpdateNeighborhood: ", event);
+                            setForceNeighborhood(
+                                forceNeighborhoods.find((item) => {
+                                    console.log(
+                                        "formUpdateNeighborhood: ",
+                                        item,
+                                    );
+                                    return item.id === event;
+                                }),
+                            );
+                        },
+                        multiple: "",
+                        disabled: { isFetching },
+                        isInvalid: { forceIsInvalid },
+                        unsetOption: "Select Police Force Neighborhood*",
+                        options: ForceNeighborhoodOptions,
+                    },
+                    {
+                        type: "number",
+                        label: "Location ID",
+                        id: "location_id",
+                        name: "location_id",
+                        required: true,
+                        disabled: { isFetching },
+                        isInvalid: { forceIsInvalid },
+                        value: neighborhoodCoordinates.id
+                            ? neighborhoodCoordinates.id
+                            : null,
+                        defaultValue: neighborhoodCoordinates.id
+                            ? null
+                            : neighborhoodCoordinates.id,
+                        onChange: (event) => {
+                            console.log(
+                                "ID onchange :: ",
+                                event,
+                                event.target.value,
+                                neighborhoodCoordinates,
+                            );
+                            setNeighborhoodCoordinates({
+                                id: event.target.value,
+                                latitude: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.latitude
+                                    : "",
+                                longitude: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.longitude
+                                    : 0.0,
+                            });
+                        },
+                        placeholder: `Location ID`,
+                    },
+                    {
+                        type: "number",
+                        label: "Latitude",
+                        id: "latitude",
+                        name: "latitude",
+                        required: true,
+                        disabled: { isFetching },
+                        isInvalid: { forceIsInvalid },
+                        value: neighborhoodCoordinates.latitude
+                            ? neighborhoodCoordinates.latitude
+                            : null,
+                        defaultValue: neighborhoodCoordinates.latitude
+                            ? null
+                            : neighborhoodCoordinates.latitude,
+                        onChange: (event) => {
+                            console.log(
+                                "Latitude onchange :: ",
+                                event,
+                                event.target.value,
+                                neighborhoodCoordinates,
+                            );
+                            setNeighborhoodCoordinates({
+                                id: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.id
+                                    : "",
+                                latitude: event.target.value,
+                                longitude: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.longitude
+                                    : 0.0,
+                            });
+                        },
+                        placeholder: `Latitude`,
+                    },
+                    {
+                        type: "number",
+                        label: "Longitude",
+                        id: "longitude",
+                        name: "longitude",
+                        required: true,
+                        disabled: { isFetching },
+                        isInvalid: { forceIsInvalid },
+                        value: neighborhoodCoordinates.longitude
+                            ? neighborhoodCoordinates.longitude
+                            : null,
+                        defaultValue: neighborhoodCoordinates.longitude
+                            ? null
+                            : neighborhoodCoordinates.longitude,
+                        onChange: (event) => {
+                            setNeighborhoodCoordinates( {
+                                id: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.id
+                                    : "",
+                                latitude: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.latitude
+                                    : 0.0,
+                                longitude: event.target.value,
+                            });
+                        },
+                        placeholder: `Longitude`,
+                    },
+                ],
+            },
+        },
+        {
+            id: "crimes-all-locations",
+            label: "Get Crime Data For Jurisdiction (All Locations)",
+            apiCall: "getCrimeReportsAtLocationMulti(latitude, longitude)",
+            apiValues: [force],
+            // Provide the lat and long inputs as entry fields, but allow the user to fill it in via provided
+            // select elements for the force -> force-neighborhood -> force-neighborhood-data -> lat/long.
+            form: {
+                formOnSubmit: handleSequentialSearchByLocation,
+                fields: [
+                    {
+                        type: "select",
+                        label: "Choose a police force",
+                        id: "force",
+                        name: "force",
+                        required: true,
+                        value: force,
+                        // onChange: (event) => {setForce(event.target.value);},
+                        onChange: setForce,
+                        disabled: { isFetching },
+                        multiple: "",
+                        isInvalid: { categoryIsInvalid },
+                        unsetOption: "Select Police Force*",
+                        options: ForceOptions,
+                    },
+                ],
+            },
+        },
+        {
+            id: "crimes-all-locations-all-dates",
+            label: "Get Crime Data For Jurisdiction (All Locations, All Dates)",
+            apiCall: "getCrimeReportsAtLocationMulti(latitude, longitude)",
+            apiValues: [force],
+            // Provide the lat and long inputs as entry fields, but allow the user to fill it in via provided
+            // select elements for the force -> force-neighborhood -> force-neighborhood-data -> lat/long.
+            form: {
+                formOnSubmit: handleSequentialSearchAllLocationsAllDates,
+                fields: [
+                    {
+                        type: "select",
+                        label: "Choose a police force",
+                        id: "force",
+                        name: "force",
+                        required: true,
+                        value: force,
+                        // onChange: (event) => {setForce(event.target.value);},
+                        onChange: setForce,
+                        disabled: { isFetching },
+                        multiple: "",
+                        isInvalid: { categoryIsInvalid },
+                        unsetOption: "Select Police Force*",
+                        options: ForceOptions,
                     },
                 ],
             },
@@ -322,13 +593,52 @@ const Sidebar = ({
             apiCall: "getStopReports(category, force, date)",
             apiValues: [category, force, date],
             form: {
-                formOnSubmit: handleSearch,
+                formOnSubmit: handleSequentialSearch,
                 fields: [
                     {
                         type: "select",
+                        label: "Choose a month",
                         id: "date",
                         name: "date",
-                        required: 1,
+                        required: true,
+                        value: [date],
+                        onChange: setDate,
+                        multiple: "multiple",
+                        disabled: { isFetching },
+                        unsetOption: "Select month*",
+                        options: DateOptions,
+                    },
+
+                    {
+                        type: "select",
+                        label: "Choose a category",
+                        id: "category",
+                        name: "category",
+                        required: true,
+                        value: category,
+                        // onChange: (event) => {setCategory(event.target.value);},
+                        onChange: setCategory,
+                        // multiple: "",
+                        disabled: { isFetching },
+                        isInvalid: { categoryIsInvalid },
+                        unsetOption: "Select Category*",
+                        options: CategoryOptions,
+                    },
+
+                    {
+                        type: "select",
+                        label: "Choose a police force",
+                        id: "force",
+                        name: "force",
+                        required: true,
+                        value: force,
+                        // onChange: (event) => {setForce(event.target.value);}, // setForce,
+                        onChange: setForce,
+                        // multiple: "",
+                        disabled: { isFetching },
+                        isInvalid: { categoryIsInvalid },
+                        unsetOption: "Select Police Force*",
+                        options: ForceOptions,
                     },
                 ],
             },
@@ -337,15 +647,81 @@ const Sidebar = ({
             id: "stops-at-location",
             label: "Get Stops Data (At Location)",
             apiCall: "getStopReportsAtLocation(location_id, date)",
-            apiValues: [neighborhoodId, date],
+            apiValues: [neighborhoodCoordinates.id, date],
             form: {
+                // formOnSubmit: handleSequentialSearchByLocation,
                 formOnSubmit: handleSearchByLocation,
                 fields: [
                     {
                         type: "select",
-                        id: "date",
-                        name: "date",
-                        required: 1,
+                        label: "Choose a police force",
+                        id: "force",
+                        name: "force",
+                        value: force,
+                        // onChange: (event) => {setForce(event.target.value);},
+                        onChange: setForce,
+                        disabled: { isFetching },
+                        required: true,
+                        multiple: "",
+                        isInvalid: { categoryIsInvalid },
+                        unsetOption: "Select Police Force*",
+                        options: ForceOptions,
+                    },
+                    {
+                        type: "select",
+                        label: "Choose a neighborhood",
+                        id: "forceNeighborhood",
+                        name: "forceNeighborhood",
+                        required: true,
+                        value: forceNeighborhood
+                            ? "id" in forceNeighborhood
+                                ? forceNeighborhood.id
+                                : ""
+                            : "",
+                        onChange: (event) => {
+                            console.log("formUpdateNeighborhood: ", event);
+                            setForceNeighborhood(
+                                forceNeighborhoods.find((item) => {
+                                    console.log(
+                                        "formUpdateNeighborhood: ",
+                                        item,
+                                    );
+                                    return item.id === event;
+                                }),
+                            );
+                        },
+                        multiple: "",
+                        disabled: { isFetching },
+                        isInvalid: { forceIsInvalid },
+                        unsetOption: "Select Police Force Neighborhood*",
+                        options: ForceNeighborhoodOptions,
+                    },
+                    {
+                        type: "number",
+                        label: "Location ID",
+                        id: "location_id",
+                        name: "location_id",
+                        required: true,
+                        disabled: { isFetching },
+                        isInvalid: { forceIsInvalid },
+                        value: neighborhoodCoordinates.id
+                            ? neighborhoodCoordinates.id
+                            : null,
+                        defaultValue: neighborhoodCoordinates.id
+                            ? null
+                            : neighborhoodCoordinates.id,
+                        onChange: (event) => {
+                            setNeighborhoodCoordinates({
+                                id: event.target.value,
+                                latitude: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.latitude
+                                    : 0.0,
+                                longitude: neighborhoodCoordinates
+                                    ? neighborhoodCoordinates.longitude
+                                    : 0.0,
+                            });
+                        },
+                        placeholder: `Location ID`,
                     },
                 ],
             },
@@ -355,56 +731,125 @@ const Sidebar = ({
     return (
         <div className={`page-sidebar ${className}`}>
             <div className="sidebar-header">
-                <form className="form-container">
-                    <Select
-                        height={50}
-                        width={100}
-                        id={`querySelect`}
-                        name={`querySelect`}
-                        value={query}
-                        unsetOption={`Select Query`}
-                        optionsConfig={queryConfig.map((queryInfo, index) => {
-                            return {
-                                key: `${index}`,
-                                value: `${queryInfo.id}`,
-                                label: `${queryInfo.label}`,
-                            };
-                        })}
-                        disabled={isFetching}
-                        onChange={
-                            //(event) => {
-                            //setQuery(event.target.value);
-                            //}
-                            setQuery
-                        }></Select>
-                </form>
-            </div>
-            <div className="sidebar-body">
-                <div className="query-form">
-                    {query && (
-                        <QueryForm
-                            name={`queryform`}
-                            id={`queryform`}
-                            onSubmit={
-                                queryConfig.filter(
-                                    (value) => value.id === query,
-                                )[0].form.formOnSubmit
-                            }
-                            // onChange={}
-                            model={
-                                queryConfig.filter(
-                                    (value) => value.id === query,
-                                )[0].form
-                            }
-                            disabled={isFetching}
-                            // isFetching={isFetching}
-                        ></QueryForm>
-                    )}
+                <div className="nav-button-group">
+                    {[
+                        { name: "query", icon: <FaDatabase /> },
+                        { name: "map", icon: <FaChartBar /> },
+                        { name: "database", icon: <FaMap /> },
+                        { name: "options", icon: <FaCog /> },
+                    ].map((button, index) => {
+                        return (
+                            <button
+                                key={`nav-menu-button-${button.name}`}
+                                id={`nav-menu-button-${button.name}`}
+                                className={`header-nav-button ${
+                                    menu === button.name ? "active" : ""
+                                }`}
+                                onClick={(event) => {
+                                    setMenu(button.name);
+                                }}>
+                                {button.icon}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
-            <div className="sidebar-footer">
-                <hr />
+            <div className="sidebar-body">
+                {menu === "query" && (
+                    <div className="query-form-container">
+                        <div className="query-form">
+                            <form className="form-container">
+                                <Select
+                                    height={50}
+                                    width={100}
+                                    label="Select a query"
+                                    id={`querySelect`}
+                                    name={`querySelect`}
+                                    value={query}
+                                    unsetOption={`Select Query`}
+                                    optionsConfig={queryConfig.map(
+                                        (queryInfo, index) => {
+                                            return {
+                                                key: `${index}`,
+                                                value: `${queryInfo.id}`,
+                                                label: `${queryInfo.label}`,
+                                            };
+                                        },
+                                    )}
+                                    disabled={isFetching}
+                                    onChange={
+                                        //(event) => {
+                                        //setQuery(event.target.value);
+                                        //}
+                                        setQuery
+                                    }></Select>
+                            </form>
+                        </div>
+                        <hr className="hr-section-border" />
+                        <div className="query-form">
+                            {query && (
+                                <QueryForm
+                                    name={`queryform`}
+                                    formID={`queryform`}
+                                    onSubmit={
+                                        queryConfig.filter(
+                                            (value) => value.id === query,
+                                        )[0].form.formOnSubmit
+                                    }
+                                    // onChange={}
+                                    model={
+                                        queryConfig.filter(
+                                            (value) => value.id === query,
+                                        )[0].form
+                                    }
+                                    disabled={isFetching}
+                                    // isFetching={isFetching}
+                                ></QueryForm>
+                            )}
+                        </div>
+                    </div>
+                )}
+                {menu === "options" && (
+                            <div className="query-form">
+                                <div className="input-field">
+                                    <label
+                                        className="input-field-label"
+                                        for="theme-buttons">
+                                        <p>Select a theme: </p>
+                                        <div className="theme-buttons-container button-group">
+                                            {[
+                                                "default",
+                                                "light",
+                                                "dark",
+                                                "cool",
+                                            ].map((themeName, index) => {
+                                                return (
+                                                    <button
+                                                        className={`button theme-button ${
+                                                            theme === themeName
+                                                                ? "theme-button-active"
+                                                                : ""
+                                                        }`}
+                                                        onClick={(event) => {
+                                                            setTheme(
+                                                                `${themeName}`,
+                                                            );
+                                                            localStorage.setItem(
+                                                                "uk-crime-dashboard-theme",
+                                                                themeName,
+                                                            );
+                                                        }}>
+                                                        {themeName.toUpperCase()}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                )}
             </div>
+            <div className="sidebar-footer"></div>
         </div>
     );
 };

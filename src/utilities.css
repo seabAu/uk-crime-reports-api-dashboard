@@ -127,11 +127,17 @@ a:hover {
     display: flex;
 }
 .form-container {
-    padding: 4px;
+    padding: 4px 0;
+    margin: 0;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+}
+.form-container * {
+    max-width: 100% !important;
+    min-width: 0% !important;
 }
 .form-row {
     align-items: center;
@@ -150,25 +156,50 @@ a:hover {
     width: 100%;
     height: 2rem;
 }
-.flex-row {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-direction: row;
-    align-content: center;
+.form-group {
     width: 100%;
-}
-.flex-col {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    align-content: center;
-    width: 100%;
+    border: none;
+    outline: none;
+    background: inherit;
+    box-shadow: inset 2px 2px 2px #171717, inset -2px -2px 2px rgb(68, 60, 60);
 }
 .input-field {
     margin: 0;
-    padding: auto;
+    padding: 2px 4px;
     width: 100%;
+}
+.input-field .input-field-label input {
+    margin: 0;
+    padding: 4px 2px;
+    width: 100%;
+    outline: none;
+}
+.input-field .input-field-label {
+    margin: 0;
+    padding: 2px 0;
+    width: 100%;
+}
+.input-field .input-field-select {
+    margin: 0;
+    padding: 4px 2px;
+    width: 100%;
+}
+.input-field .input-field-text {
+    margin: 0;
+    padding: 2px 0;
+    width: 100%;
+}
+.button-form-submit {
+    width: 100%;
+    align-self: center;
+    text-align: center;
+}
+.form-submit-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
 }
 input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="search"], textarea {
     display: inline-block;
@@ -293,22 +324,6 @@ input[type="search"] {
 .lt-ie9 .search>input {
     padding: 0px 6px;
 }
-.option {
-    display: inline-block;
-    vertical-align: top;
-    position: relative;
-    width: 100%;
-    height: 18px;
-    user-select: none;
-    -webkit-user-select: none;
-}
-.option>input {
-    position: absolute;
-    left: 0px;
-    width: inherit;
-    height: inherit;
-    opacity: 0;
-}
 .checkbox, .radio {
     display: block;
     height: 100%;
@@ -407,6 +422,17 @@ input:focus+.checkbox, input:focus+.radio, input.focus+.checkbox, input.focus+.r
 .select option {
     text-shadow: none;
 }
+.option {
+    vertical-align: top;
+    width: 100%;
+    height: 18px;
+}
+.option>input {
+    left: 0px;
+    width: inherit;
+    height: inherit;
+    opacity: 0;
+}
 .select::before {
     content: "";
     position: absolute;
@@ -480,6 +506,7 @@ select::-ms-expand {
     vertical-align: top;
     position: relative;
     width: 32px;
+    user-select: none;
     -webkit-user-select: none;
 }
 .switch>label {
@@ -760,6 +787,7 @@ a.button {
     color: transparent;
     border-left-width: 0px;
     border-radius: 0px 3px 3px 0px;
+    user-select: none;
     -webkit-user-select: none;
 }
 .button-dropdown>.toggle::before, .button-dropdown>.toggle::after {
@@ -786,43 +814,6 @@ a.button {
 }
 .button-dropdown:hover>.toggle, .button-dropdown.open>.toggle {
     border-bottom-right-radius: 0px;
-}
-.dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0px;
-    right: 0px;
-    margin-top: -1px;
-    font-size: 12px;
-    border: 1px solid black;
-    border-radius: 0px 0px 3px 3px;
-    box-shadow: rgba(0, 0, 0, 0.14902) 0px 1px 2px;
-    background: rgb(51, 51, 51);
-}
-.dropdown:hover {
-    display: block;
-}
-.dropdown>li>a {
-    display: block;
-    line-height: 30px;
-    padding: 0px 12px;
-    color: rgb(198, 198, 198);
-    text-decoration: none;
-    text-shadow: rgba(0, 0, 0, 0.8) 0px 1px;
-    box-shadow: rgba(255, 255, 255, 0.0470588) 0px 0px 0px 1px inset;
-}
-.dropdown>li>a:hover, .dropdown>li>a:focus {
-    outline: none;
-    background: rgb(61, 61, 61);
-}
-.dropdown>li+li {
-    border-top-width: 1px;
-    border-top-style: solid;
-    border-top-color: rgb(17, 17, 17);
-}
-.dropdown>li:last-child>a {
-    border-radius: 0px 0px 2px 2px;
 }
 .button-prev, .button-next {
     position: relative;
@@ -869,6 +860,43 @@ a.button {
 }
 .button-next::after {
     border-left-color: rgb(200, 200, 200);
+}
+.dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0px;
+    right: 0px;
+    margin-top: -1px;
+    font-size: 12px;
+    border: 1px solid black;
+    border-radius: 0px 0px 3px 3px;
+    box-shadow: rgba(0, 0, 0, 0.14902) 0px 1px 2px;
+    background: rgb(51, 51, 51);
+}
+.dropdown:hover {
+    display: block;
+}
+.dropdown>li>a {
+    display: block;
+    line-height: 30px;
+    padding: 0px 12px;
+    color: rgb(198, 198, 198);
+    text-decoration: none;
+    text-shadow: rgba(0, 0, 0, 0.8) 0px 1px;
+    box-shadow: rgba(255, 255, 255, 0.0470588) 0px 0px 0px 1px inset;
+}
+.dropdown>li>a:hover, .dropdown>li>a:focus {
+    outline: none;
+    background: rgb(61, 61, 61);
+}
+.dropdown>li+li {
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-top-color: rgb(17, 17, 17);
+}
+.dropdown>li:last-child>a {
+    border-radius: 0px 0px 2px 2px;
 }
 .lt-ie9 .button-prev::before, .lt-ie9 .button-next::before, .lt-ie9 .button-prev::after, .lt-ie9 .button-next::after {
     border-style: solid;
@@ -1128,7 +1156,7 @@ a.button {
 }
 label {
     display: block;
-    margin-top: 2em;
+    /* margin-top: 2em; */
     font-size: calc(var(--input-text-size) * 1.125);
     color: #777;
 }
@@ -1196,14 +1224,96 @@ textarea {
     height: auto;
     max-height: 100px;
 }
-.button-form-submit {
-    width: 50%;
-    align-self: center;
+
+/*
+.progress {
+    height: 20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
-.form-submit-container {
-    display: flex;
-    flex-direction: col;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
+.progress-bar {
+    float: left;
+    width: 0%;
+    height: 100%;
+    font-size: 12px;
+    line-height: 20px;
+    color: #fff;
+    text-align: center;
+    background-color: #337ab7;
+    -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    -webkit-transition: width 0.6s ease;
+    -o-transition: width 0.6s ease;
+    transition: width 0.6s ease;
 }
+.progress-striped .progress-bar, .progress-bar-striped {
+    background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    -webkit-background-size: 40px 40px;
+    background-size: 40px 40px;
+}
+.progress.active .progress-bar, .progress-bar.active {
+    -webkit-animation: progress-bar-stripes 2s linear infinite;
+    -o-animation: progress-bar-stripes 2s linear infinite;
+    animation: progress-bar-stripes 2s linear infinite;
+}
+.progress-bar-success {
+    background-color: #5cb85c;
+}
+.progress-striped .progress-bar-success {
+    background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+}
+.progress-bar-info {
+    background-color: #5bc0de;
+}
+.progress-striped .progress-bar-info {
+    background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+}
+.progress-bar-warning {
+    background-color: #f0ad4e;
+}
+.progress-striped .progress-bar-warning {
+    background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+}
+.progress-bar-danger {
+    background-color: #d9534f;
+}
+.progress-striped .progress-bar-danger {
+    background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+}
+*/
+
+
+/*
+    .progress-bar-container {
+        -webkit-animation: progress-bar-stripes 2s linear infinite;
+        -o-animation: progress-bar-stripes 2s linear infinite;
+        animation: progress-bar-stripes 2s linear infinite;
+        width: 100%;
+        padding: 5px;
+        margin: 50px;
+        -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .progress-bar-filler {
+        height: 100%;
+        padding: 5px;
+        border-radius: inherit;
+    }
+    .progress-bar-label {
+        padding: 5px;
+    }
+*/

@@ -1,5 +1,13 @@
 import React from "react";
 import { ExportToCsv } from "export-to-csv";
+import { 
+    SanitizeObj,
+    SanitizeObjArray,
+    SpliceObjArray,
+    flattenObj,
+    flatMapObjArray,
+    flatMapObjText } from "../ObjectUtils/ObjectUtils";
+
 function TableDownload ( { dataName, tableData, downloadFileType } )
 {
     const options = {
@@ -16,91 +24,29 @@ function TableDownload ( { dataName, tableData, downloadFileType } )
         // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
     };
 
-    // Declare a flatten function that takes
-    // object as parameter and returns the
-    // flatten object
-    const flattenObj = (obj) => {
-        // The object which contains the
-        // final result
-        let result = {};
-
-        // loop through the object "ob"
-        // for (const key in obj) {
-        Object.keys( obj ).forEach( ( key ) =>
-        {
-            // Sanitize the value if it's null or undefined.
-            if ( obj[ key ] === null || obj[ key ] === undefined || obj[key] === '' )
-            {
-                obj[ key ] = "-";
-            }
-            if ( typeof obj[ key ] === "object" && !Array.isArray( obj[ key ] ) )
-            {
-                const temp = flattenObj( obj[ key ] );
-                for ( const j in temp )
-                {
-                    // Store temp in result
-                    result[ key + "_" + j ] = temp[ j ];
-                }
-            }
-
-            // Else store obj[key] in result directly
-            else
-            {
-                result[ key ] = obj[ key ];
-            }
-        } );
-        return result;
-    };
-
-    // This flattens an object into HTML elements.
-    const flatMapObjArray = (objArray) => {
-        // console.log("flatMapObjText(): ", obj);
-        return objArray.map((obj, index) => {
-            if (typeof obj === "object") {
-                // return flatMapObj(obj, "_"); // flatMapObjText(obj);
-                // return flattenObject(obj);
-                console.log(
-                    "FlattenMapObjArray: Original object: ",
-                    obj,
-                    "\n\nFlattened object: ",
-                    flattenObj(obj),
-                );
-                return flattenObj(obj);
-            } else if (Array.isArray(obj)) {
-                return [...flatMapObjArray(obj)];
-            } else {
-                return obj;
-            }
-        });
-    };
-
-    // This flattens an object into HTML elements.
-    const flatMapObjText = (obj) => {
-        // console.log("flatMapObjText(): ", obj);
-        return Object.entries(obj)
-            .map((objProperty) => {
-                if (
-                    typeof objProperty[1] === "object" &&
-                    objProperty[1] !== null
-                ) {
-                    return `${flatMapObjText(objProperty[1])}`;
-                } else {
-                    return `${objProperty[0]}: ${objProperty[1]}`;
-                }
-            })
-            .join("");
-    };
-
     const download = ( data, filetype ) =>
     {
         const flattenedData = flatMapObjArray(data);
+        // console.log(
+        //     "TableDownload: ",
+        //     "\nData = ",
+        //     data,
+        //     "\nData has ",
+        //     data.length,
+        //     "elements.",
+        //     "\nFlattenedData = ",
+        //     flattenedData,
+        //     "\nFlattenedData has ",
+        //     flattenedData.length,
+        //     "elements.",
+        // );
         const csvExporter = new ExportToCsv(options);
         csvExporter.generateCsv(flattenedData);
     };
 
     return (
         <div className="table-download-container">
-            <button
+            <button className="button"
                 onClick={() => {
                     download(tableData, downloadFileType);
                 }}>
