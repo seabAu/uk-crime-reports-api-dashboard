@@ -5,8 +5,8 @@ import {
     SanitizeObjArray,
     SpliceObjArray,
     flattenObj,
-    flatMapObjArray,
-    flatMapObjText } from "../ObjectUtils/ObjectUtils";
+    flattenObjArray,
+    flatMapObjText } from "../Utilities/ObjectUtils";
 
 function TableDownload ( { dataName, tableData, downloadFileType } )
 {
@@ -26,7 +26,7 @@ function TableDownload ( { dataName, tableData, downloadFileType } )
 
     const download = ( data, filetype ) =>
     {
-        const flattenedData = flatMapObjArray(data);
+        const flattenedData = flattenObjArray(data);
         // console.log(
         //     "TableDownload: ",
         //     "\nData = ",

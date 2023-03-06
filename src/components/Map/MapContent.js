@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FiMenu } from "react-icons/fi";
-import MapProvider from "./MapProvider";
 import RenderMap from "./RenderMap";
 
 export default function MapContent({ isFetching, theme, data }) {
@@ -129,13 +128,15 @@ export default function MapContent({ isFetching, theme, data }) {
                         buttons.push(
                             <button
                                 className="map-sidebar-button"
+                                id={`map-sidebar-button-${report.id}`}
+                                key={`map-sidebar-button-${report.id}`}
                                 // onClick={(event) => {
                                 //     setLatitude(report.location.latitude);
                                 //     setLongitude(report.location.longitude);
-                            // }}
+                                // }}
                             >
                                 {report.id}
-                            </button>
+                            </button>,
                         );
                     }
                 }
@@ -152,7 +153,7 @@ export default function MapContent({ isFetching, theme, data }) {
                 <div className="map-sidebar-content">
                     <div className="map-sidebar-controls-container">
                         <div className="input-field-container">
-                            <label className="input-field-label" for="Latitude">
+                            <label className="input-field-label" htmlFor="latitude">
                                 <h2>Latitude</h2>
                                 <input
                                     type="number"
@@ -171,7 +172,7 @@ export default function MapContent({ isFetching, theme, data }) {
                         <div className="input-field-container">
                             <label
                                 className="input-field-label"
-                                for="Longitude">
+                                htmlFor="longitude">
                                 <h2>Longitude</h2>
                                 <input
                                     type="number"
@@ -188,7 +189,7 @@ export default function MapContent({ isFetching, theme, data }) {
                             </label>
                         </div>
                         <div className="input-field-container">
-                            <label className="input-field-label" for="Zoom">
+                            <label className="input-field-label" htmlFor="zoom">
                                 <h2>Zoom</h2>
                                 <input
                                     type="number"

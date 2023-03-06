@@ -1,6 +1,6 @@
 import React from "react";
-import { Pane, Spinner } from "evergreen-ui";
 import ProgressBar from "./ProgressBar";
+import Spinner from "./Spinner";
 
 const Loader = ({ progressInfo }) => {
     const getProgressBars = (input) => {
@@ -20,14 +20,23 @@ const Loader = ({ progressInfo }) => {
                                 <ProgressBar
                                     id={progress.id ?? index}
                                     key={index}
-                                    message={progress.message}
+                                    message={progress.message ?? ""}
                                     bgcolor={"#988dfa"}
-                                    fillercolor={"#78c7e6"}
-                                    height={36}
-                                    success={progress.success}
-                                    failure={progress.failure}
-                                    currValue={progress.currValue}
-                                    endValue={progress.endValue}
+                                    fillercolor={"#7823e6"}
+                                    labelColor={"#ffffff"}
+                                    height={16}
+                                    margin={0}
+                                    padding={ 2 }
+                                    border={`1px solid white`}
+                                    fillerMargin={2}
+                                    fillerPadding={0}
+                                    success={progress.success ?? 0}
+                                    failure={progress.failure ?? 0}
+                                    results={progress.results ?? 0}
+                                    currValue={progress.currValue ?? 0}
+                                    endValue={progress.endValue ?? 1}
+                                    startTime={progress.startTime}
+                                    currTime={progress.currTime}
                                 />,
                             );
                         }
@@ -40,18 +49,19 @@ const Loader = ({ progressInfo }) => {
         }
     };
     return (
-        <div class="spinner-container">
-            <div className="flex-row">
-                <svg className="spinner" id="spinner" viewBox="0 0 50 50">
-                    <circle
-                        class="path"
-                        cx="25"
-                        cy="25"
-                        r="20"
-                        fill="none"
-                        strokeWidth="5"></circle>
-                </svg>
-            </div>
+        <div className="loader-container">
+            <Spinner
+            padding={`10px`}
+            margin={`10px`}
+            radius={`20`}
+            cx={`25`}
+            cy={`25`}
+            fill={`#111111`}
+            stroke={`#555555`}
+            strokeWidth={5}
+            spinnerPadding={5}
+            
+            />
             {progressInfo && getProgressBars(progressInfo)}
         </div>
     );

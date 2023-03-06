@@ -8,7 +8,8 @@ import {
     flatMapObjText,
     obj2List,
     objArray2List,
-} from "../ObjectUtils/ObjectUtils";
+} from "../Utilities/ObjectUtils";
+import { obj2ListText } from "../Utilities/DOMUtilities";
 
 const MAPBOX_API_KEY_SK =
     "sk.eyJ1Ijoic2JzaWJ5bGxpbmUiLCJhIjoiY2xlamUzdjZzMDIwMzQxbG00eHpjaDk0MyJ9.0BDFwYgJp3IxMgYB6Bc2KQ";
@@ -31,36 +32,7 @@ const RenderMap = ({
 } ) =>
 {
     const mapRef = useRef(null);
-    const mapContainerRef = useRef(null);
-    const obj2ListText = (input) => {
-        console.log( "obj2ListText :: input = ", input );
-        let result = "";
-        if (typeof input === "object") {
-            Object.entries(input).forEach((objProperty, index) => {
-                let objKey = objProperty[0];
-                let objValue = objProperty[1];
-                if (typeof objValue === "object" && objValue !== null) {
-                    // Nested object
-                    result += `<li className="obj-list-item">${objKey}:` + obj2ListText(objValue) + `</li>`;
-                } else {
-                    // Not a nested object.
-                    // Sanitize the value if it's null or undefined.
-                    if (
-                        objValue === null ||
-                        objValue === undefined ||
-                        objValue === "" ||
-                        objValue === " "
-                    ) {
-                        objValue = "-";
-                    }
-                    result += `<li className="obj-list-item">${objKey}: ${objValue}</li>`;
-                }
-            })
-            
-        }
-
-        return `<ul>` + result + `</ul>`;
-    }
+    const mapContainerRef = useRef( null );
 
     const data2geojson = () => {
         let points = [];

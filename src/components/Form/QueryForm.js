@@ -2,17 +2,21 @@ import React from "react";
 import Datalist from "./Datalist";
 import Input from "./Input";
 import Select from "./Select";
+import Checkbox from "./Checkbox";
+import Range from "./Range";
 
-function QueryForm({
-    children,
-    name,
-    formID,
-    onSubmit,
-    onChange,
-    model,
-    disabled,
-    isFetching,
-}) {
+function QueryForm ( props )
+{
+    const {
+        children,
+        name,
+        formID,
+        onSubmit,
+        onChange,
+        model,
+        disabled,
+        isFetching,
+    } = props;
     const validInputTypes = [
         "button",
         "checkbox",
@@ -29,6 +33,7 @@ function QueryForm({
         "time",
         "week",
     ];
+    // console.log( "QueryForm :: props = ", props );
     // console.log(
     //     "QueryForm() Init: ",
     //     "\nchildren = ", children,
@@ -83,7 +88,7 @@ function QueryForm({
                                             )
                                         }
                                         required={field.required ?? `false`}
-                                        multiple={field.multiple ?? ""}
+                                        multiple={field.multiple}
                                         disabled={isFetching ?? ""}
                                         onChange={
                                             field.onChange ?? ""

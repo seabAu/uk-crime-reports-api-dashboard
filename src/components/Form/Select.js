@@ -1,4 +1,5 @@
 import React from "react";
+import { arrayIsValid } from "../Utilities/ObjectUtils";
 
 function Select(props) {
     const {
@@ -14,10 +15,24 @@ function Select(props) {
         disabled,
         required,
         multiple,
+        dropdown,
     } = props;
 
     const debugReadProps = () => {
         console.log("Form.Select :: {Props} = ", props);
+    };
+
+    const isOptionSelected = (optionValue, selected) => {
+        if (optionValue && arrayIsValid(selected)) {
+            if ( selected.includes(optionValue) )
+            {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     };
 
     return (
@@ -30,7 +45,8 @@ function Select(props) {
                     width={width}
                     key={id}
                     id={id}
-                    name={name}
+                    name={ name }
+                    size={`1`}
                     value={multiple === "multiple" ? value : value} //{value !== null && value !== undefined ? value : ""}
                     onChange={(event) => {
                         let selected = event.target.value;
@@ -47,8 +63,8 @@ function Select(props) {
                             //     typeof value,
                             //     "\n event.target.value = ",
                             //     event.target.value,
-                            //     "\n Attempt at internally fetching the ID of this input field: ",
-                            //     document.getElementById({ id }),
+                            //     // "\n Attempt at internally fetching the ID of this input field: ",
+                            //     // document.getElementById({ id }),
                             // );
                             let currValue = value;
                             if (
@@ -57,24 +73,51 @@ function Select(props) {
                                 selected !== null
                             ) {
                                 if (!Array.isArray(currValue)) {
-                                    // console.log( "Value is not an array." );
+                                    // console.log( "Value is not an array :: ", currValue );
                                     currValue = [currValue];
                                 }
-                                if (currValue.indexOf(selected) > -1) {
+                                if ( currValue.indexOf( selected ) > -1 )
+                                {
+                                    // Selected value is already selected, so unselect it.
+                                    // console.log(
+                                    //     "Select :: Multiple :: currValue = ", currValue, " :: returning ",
+                                    //     currValue.filter((item) => {
+                                    //         return (
+                                    //             item !== selected &&
+                                    //             item !== "" &&
+                                    //             item !== undefined &&
+                                    //             item !== null
+                                    //         );
+                                    //     }),
+                                    // );
                                     onChange(
                                         currValue.filter((item) => {
-                                            return item !== selected;
+                                            return item !== selected && item !== '' && item !== undefined && item !== null;
                                         }),
                                     );
-                                } else {
-                                    onChange([...currValue, selected]);
+                                } else
+                                {
+                                    // Selected value is not yet selected, so return it to be added to the state array.
+                                    // console.log(
+                                    //     "Select :: Multiple :: currValue = ", currValue, " :: returning ",
+                                    //     [
+                                    //         ...currValue.filter(
+                                    //             (val) =>
+                                    //                 val !== "" &&
+                                    //                 val !== undefined &&
+                                    //                 val !== null,
+                                    //         ),
+                                    //         selected,
+                                    //     ],
+                                    // );
+                                    onChange([...(currValue.filter((val)=>(val !== '' && val !== undefined && val !== null))), selected]);
                                 }
                             }
                         } else {
                             onChange(selected);
                         }
                     }}
-                    multiple={multiple === "multiple" ? "multiple" : ""}
+                    multiple={multiple === "multiple" && dropdown !== true ? "multiple" : ""}
                     required={required ?? ""}
                     disabled={disabled ? disabled : false}>
                     <option value="" className="option">
@@ -84,8 +127,8 @@ function Select(props) {
                         // console.log(option, index);
                         return (
                             <option
-                                className="option"
-                                key={option.key}
+                                className={`option ${isOptionSelected(option.value, value) ? 'option-selected' : ''}`}
+                                key={index}
                                 value={option.value}>
                                 {option.label}
                             </option>

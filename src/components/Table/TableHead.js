@@ -1,25 +1,46 @@
 import React from "react";
 import { useState } from "react";
 
-function TableHead({
-    isVisible,
-    isFetching,
-    isFilterable,
-    isSortable,
-    tableHeadings,
-    headerOnClick,
-    hideColumns,
-    changeFilters,
-}) {
+function TableHead ( props )
+{
+    const {
+        // isVisible,
+        // isFetching,
+        tableID,
+        tableHeadings,
+        isFilterable,
+        isSortable,
+        headerOnClick,
+        hideColumns,
+        changeFilters,
+    } = props;
+    
     const [sortKey, setSortKey] = useState("");
     const [order, setOrder] = useState("asc");
     const [columnData, setColumnData] = useState(tableHeadings);
     const formatText = (text = "") => {
-        return capitalizeFirstLetter(text.replace("_", " "));
+        // return capitalizeFirstLetter(text.replace("_", " "));
+        return capitalizeFirstLetter( text.includes("_") ? 
+            (
+                text.split( "_" )
+            ).join( " " ) : text
+        );
     };
 
     const capitalizeFirstLetter = (text) => {
         return text.charAt(0).toUpperCase() + text.slice(1);
+    };
+
+    const isColumnHidden = (heading_id) => {
+        // hideColumns ? (Array.isArray(hideColumns) ? (hideColumns.includes(column.key) ? " col-hidden" : "") : '') : ''
+        if (hideColumns) {
+            if (Array.isArray(hideColumns)) {
+                if (hideColumns.length > 0) {
+                    return hideColumns.includes(heading_id);
+                }
+            }
+        }
+        return false;
     };
 
     // console.log( "TableHead :: ", tableHeadings );
@@ -33,12 +54,10 @@ function TableHead({
                     return (
                         <th
                             colSpan="1"
-                            key={`table-header-label-${column.key}`}
-                            id={`table-header-label-${column.key}`}
+                            key={`table-${tableID}-header-label-${column.key}`}
+                            id={`table-${tableID}-header-label-${column.key}`}
                             className={`${
-                                hideColumns.includes(headingId)
-                                    ? " col-hidden"
-                                    : ""
+                                isColumnHidden(column.key) ? " col-hidden" : ""
                             }`}
                             onClick={(index) => {
                                 if (isSortable) {
@@ -57,33 +76,34 @@ function TableHead({
                 })}
             </tr>
             <tr>
-                {isFilterable && (tableHeadings.map((column) => {
-
-                    return (
-                        <th
-                            colSpan="1"
-                            key={`table-search-filter-${column.key}`}
-                            id={`table-search-filter-${column.key}`}
-                            className={`${
-                                hideColumns.includes(column.key)
-                                    ? " col-hidden"
-                                    : ""
-                            }`}
-                            onClick={(index) => {}}>
-                            <input
-                                type="text"
-                                id={`table-search-filter-input-${column.key}`}
-                                className="table-search-filter"
-                                placeholder={`Filter ${column.key}`}
-                                onChange={(event) => {
-                                    changeFilters(
-                                        column.key,
-                                        event.target.value,
-                                    );
-                                }}></input>
-                        </th>
-                    );
-                }))}
+                {isFilterable &&
+                    tableHeadings.map((column) => {
+                        return (
+                            <th
+                                colSpan="1"
+                                key={`table-${tableID}-search-filter-${column.key}`}
+                                id={`table-${tableID}-search-filter-${column.key}`}
+                                className={`${
+                                    isColumnHidden(column.key)
+                                        ? " col-hidden"
+                                        : ""
+                                }`}
+                                onClick={(index) => {}}>
+                                <input
+                                    type="text"
+                                    key={`table-${tableID}-search-filter-input-${column.key}`}
+                                    id={`table-${tableID}-search-filter-input-${column.key}`}
+                                    className="table-search-filter"
+                                    placeholder={`Filter ${column.key}`}
+                                    onChange={(event) => {
+                                        changeFilters(
+                                            column.key,
+                                            event.target.value,
+                                        );
+                                    }}></input>
+                            </th>
+                        );
+                    })}
             </tr>
         </thead>
     );

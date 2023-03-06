@@ -1,0 +1,1 @@
+// This will perform the same function as DashboardContent, except for the Local/Remote Database menu instead of the Query menu.

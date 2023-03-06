@@ -1,40 +1,25 @@
 import React from "react";
+import { cleanInvalid } from "../Utilities/ObjectUtils";
 import TableSubTable from "./TableSubTable";
 
-function TableBody({
-    isVisible,
-    isFetching,
-    tableData,
-    hideColumns,
-    rowOnClick,
-    cellOnClick,
-}) {
-    //const getIsVisible = ( rowIndex, page, numPerPage, filters = [] ) => {
-    //    let startIndex = page * numPerPage;
-    //    let endIndex = page * numPerPage + numPerPage - 1;
-    //    if ( rowIndex >= startIndex && rowIndex < endIndex )
-    //    {
-    //        return true;
-    //    }
-    //    return false;
-    //}
-    // console.log(
-    //     "TableBody(): ",
-    //     isVisible,
-    //     isFetching,
-    //     tableData,
-    //     hideColumns,
-    //     rowOnClick,
-    //     cellOnClick,
-    // );
+function TableBody(props) {
+    const {
+        // isVisible,
+        // isFetching,
+        tableID,
+        tableData,
+        hideColumns,
+        rowOnClick,
+        cellOnClick,
+    } = props;
 
     return (
         <tbody>
             {tableData.map((object, rowIndex) => {
                 return (
                     <tr
-                        key={`table-row-${rowIndex}`}
-                        id={`table-row-${rowIndex}`}
+                        key={`table-${tableID}-row-${rowIndex}`}
+                        id={`table-${tableID}-row-${rowIndex}`}
                         className={`row-${
                             rowIndex
                             //getIsVisible(index, pageNum, entriesPerPage, [])
@@ -54,8 +39,8 @@ function TableBody({
                                 ) {
                                     return (
                                         <td
-                                            key={`table-cell-${rowIndex}-${cellIndex}-${objKey}`}
-                                            id={`table-cell-${rowIndex}-${cellIndex}-${objKey}`}
+                                            key={`table-${tableID}-cell-${rowIndex}-${cellIndex}-${objKey}`}
+                                            id={`table-${tableID}-cell-${rowIndex}-${cellIndex}-${objKey}`}
                                             rowSpan="1"
                                             className={`col-cell sub-table-container ${
                                                 hideColumns.includes(objKey)
@@ -69,27 +54,23 @@ function TableBody({
                                                 );
                                             }}>
                                             <TableSubTable
-                                                parentKey={`${rowIndex}-${cellIndex}-${objKey}`}
-                                                data={objValue}></TableSubTable>
+                                                data={objValue}
+                                                containerID={`${rowIndex}-${cellIndex}-${objKey}`}
+                                                tableID={`${tableID}`}></TableSubTable>
                                         </td>
                                     );
                                 } else {
                                     return (
                                         <td
-                                            key={`table-cell-${rowIndex}-${cellIndex}-${objKey}`}
-                                            id={`table-cell-${rowIndex}-${cellIndex}-${objKey}`}
+                                            key={`table-${tableID}-cell-${rowIndex}-${cellIndex}-${objKey}`}
+                                            id={`table-${tableID}-cell-${rowIndex}-${cellIndex}-${objKey}`}
                                             rowSpan="1"
                                             className={`col-cell ${
                                                 hideColumns.includes(objKey)
                                                     ? " col-hidden"
                                                     : ""
                                             }`}>
-                                            {objValue == null ||
-                                            objValue === undefined ||
-                                            objValue === " " ||
-                                            objValue === ""
-                                                ? "-"
-                                                : objValue}
+                                            {cleanInvalid(objValue, "-")}
                                         </td>
                                     );
                                 }

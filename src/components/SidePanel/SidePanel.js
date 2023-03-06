@@ -3,9 +3,10 @@
 
 import { Button, Offcanvas } from "bootstrap";
 import React, { useState } from "react";
-import { flatMapObjText, obj2List, objArray2List } from "../ObjectUtils/ObjectUtils";
+import { flatMapObjText, obj2List } from "../Utilities/ObjectUtils";
 import Table from "../Table/Table";
 import { FiX } from "react-icons/fi";
+import { objArray2List } from "../Utilities/DOMUtilities";
 function SidePanel({ show, isFetching, setShow, panelDataID, panelData }) {
 
     // console.log(
@@ -24,7 +25,8 @@ function SidePanel({ show, isFetching, setShow, panelDataID, panelData }) {
                         <button
                             className="close-button side-panel-close-button"
                             onClick={() => {
-                                setShow(false);
+                                setShow( false );
+                                
                             }}>
                             <FiX />
                         </button>

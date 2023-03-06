@@ -379,28 +379,6 @@ button, a.button {
     height: calc( 100% - var(--header-height));
     max-height: calc( 100% - var(--header-height));
 }
-.dashboard-content .table-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 2rem 1rem;
-    padding: 1rem;
-    max-height: 100% !important;
-    max-width: 100% !important;
-    height: 100% !important;
-    width: 100% !important;
-    flex-grow: 1;
-    background-color: var(--color-table-body);
-    border-radius: 0;
-}
-.dashboard-content .table-container .table {
-    overflow: auto;
-    /*margin: 1rem 0.25rem;*/
-    padding: 1rem 0.25rem;
-    border: 1px solid gray;
-    height: 100% !important;
-    border-radius: 0;
-}
 
 /* Header Styling */
 
@@ -688,7 +666,7 @@ img.avatar-icon {
     text-align: center;
     background-color: transparent;
     border-color: rgba( 0, 0, 0, 0.2);
-    border-width: 1px;
+    border-width: 0px;
 }
 .nav-button-group .header-nav-button.active {
     background-color: var(--color-button-bg-active);
@@ -724,10 +702,15 @@ img.avatar-icon {
     height: 100%;
 }
 .sidebar-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     position: relative;
     box-shadow: inset 0px 0px 10px var(--border-color);
     overflow-y: auto;
     max-width: 100%;
+    width: 100%;
+    height: 100%;
     flex-grow: 1;
     background: var(--color_header);
 }
@@ -882,6 +865,15 @@ Sidebar hierarchy:
     width: 100%;
     text-align: center;
 }
+.footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+    background-color: #efefef;
+    text-align: center;
+}
 .page-footer {
     clear: both;
     position: relative;
@@ -932,16 +924,56 @@ Sidebar hierarchy:
 
 /* TABLE STYLING */
 
-th {
-    font-weight: bold;
+.table-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem 1rem;
+    padding: 1rem;
+    max-height: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    width: 100% !important;
+    flex-grow: 1;
+    background-color: var(--color-table-body);
+    border-radius: 0;
+}
+.table-container .table {
+    overflow: auto;
+    /*margin: 1rem 0.25rem;*/
+    /*padding: 1rem 0.25rem;*/
+    border: 1px solid gray;
+    height: 100% !important;
+    border-radius: 0;
+    max-height: 100% !important;
+    max-width: 100% !important;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+table>* {
+    font-size: var(--font-size-table);
+    width: auto;
+    min-width: 0;
 }
 .table table {
+    /*overflow: auto !important;*/
+    /*margin: 1rem 0.25rem;*/
+    padding: 1rem 0.5rem;
+    border: 1px solid gray;
+    height: 100% !important;
+    border-radius: 0;
     border-spacing: 0;
     -webkit-border-horizontal-spacing: 0px;
     -webkit-border-vertical-spacing: 0px;
+    border-collapse: separate;
     border-collapse: collapse;
+    /* Don't collapse */
     margin: 0 auto;
     max-width: var(--max-width-table);
+    max-width: 100% !important;
     width: 100%;
     max-height: 100% !important;
     table-layout: auto;
@@ -952,11 +984,26 @@ th {
     empty-cells: show;
     overflow: hidden;
 }
-table>* {
-    font-size: var(--font-size-table);
-}
-.table tbody tr {
+.table table thead, .table table tbody, .table table tfoot {
+    background-color: var(--color-table-body);
     border: 1px solid var(--color-table-border);
+}
+.table thead tr th {
+    padding: 0.125rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    border: 0px solid var(--color-table-border);
+    cursor: pointer;
+    font-size: calc(var(--font-size-table) * 1.1);
+    font-weight: bold;
+}
+.table thead tr, .table tbody tr {
+    border: 0px solid var(--color-table-border);
+}
+.table tfoot tr {
+    border: 1px solid var(--color-table-border);
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
 .table tbody tr:nth-of-type(even) {
     background-color: var(--color-table-row-even);
@@ -965,26 +1012,24 @@ table>* {
     background-color: var(--color-table-row-odd);
 }
 .table tbody tr td {
-    color: var(--color-table-text);
-    max-width: var(--max-width-table-cell);
-    max-inline-size: auto;
-    inline-size: min-content;
-    overflow-wrap: break-word;
-    box-shadow: var(--box-shadow-params-table-cell);
-    padding: 6px;
-    position: relative;
-    border: 1px solid var(--color-table-border);
-    width: auto;
     height: 100%;
+    box-shadow: var(--box-shadow-params-table-cell);
+    border: 1px solid var(--color-table-border);
+    color: var(--color-table-text);
+    position: relative;
     margin: 0;
-    overflow-wrap: break-word;
+    padding: 0.125rem 0.5rem;
+    overflow-wrap: break-word !important;
     text-transform: capitalize;
     font-size: var(--font-size-table);
 }
-.table thead th {
-    padding: 10px;
-    border: 1px solid var(--color-table-border);
-    cursor: pointer;
+.table tbody tr td.col-cell {
+    width: auto;
+    max-inline-size: inherit;
+    inline-size: min-content;
+    max-width: var(--max-width-table-cell);
+    min-width: calc(min-content / 4) !important;
+    min-width: 1rem !important;
 }
 .table tbody tr:hover, tbody tr:hover::after, tbody td:hover, tbody td:hover::after {
     color: var(--color_highlightColor2) !important;
@@ -992,6 +1037,40 @@ table>* {
 .table tr:hover, td:hover {
     background-color: var(--color-table-hover) !important;
     /*box-shadow: var(--box-shadow-params-table-row-hover) !important;*/
+}
+.table-fixed-head table {
+    overflow-y: auto !important;
+}
+.table-fixed-head table thead, .table-fixed-head table thead th, .table-fixed-head table thead tr {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+}
+.table-fixed-head table thead tr {
+    z-index: 10 !important;
+    position: sticky !important;
+    border-collapse: initial !important;
+}
+.table-fixed-head table tbody th {
+    position: sticky !important;
+    left: 0 !important;
+}
+
+/* here is the trick - use box shadows as a pseudo border */
+
+table tbody:nth-of-type(1) tr:nth-of-type(1) td {
+    border-top: none !important;
+}
+table thead th {
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: inset 0px 1px 0px var(--color-table-border), inset 0px -1px 0px var(--color-table-border), inset 1px 0px 0px var(--color-table-border), inset -1px 0px 0px var(--color-table-border);
+}
+
+/* and one small fix for weird FF behavior, described in https://stackoverflow.com/questions/7517127/ */
+
+table thead th {
+    background-clip: padding-box
 }
 
 /*
@@ -1060,9 +1139,10 @@ table.sub-table tbody tr td.sub-table-cell-value {
     height: 10%;
     width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 0.125rem 2rem;
     display: flex;
     justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     list-style: none;
 }
@@ -1116,6 +1196,17 @@ input[type=text].table-search-filter:focus {
     font-weight: normal;
     font-family: "Libre Franklin", Sans-serif;
     padding: 10px 0px;
+}
+.table-options {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: row;
+    width: 100%;
+}
+.table-download-container {
+    width: 100%;
+    min-width: min-content;
 }
 
 /*
@@ -1180,120 +1271,6 @@ input[type=text].table-search-filter:focus {
 }
 */
 
-
-/* SELECT INPUT STYLING */
-
-select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-color: transparent;
-    border: none;
-    padding: 0.25rem 0.3rem;
-    margin: 2px 0;
-    width: 100%;
-    font-family: inherit;
-    cursor: inherit;
-    line-height: inherit;
-    z-index: 1;
-    font-size: var(--font-size-table);
-    outline: none;
-}
-select::-ms-expand {
-    display: none;
-}
-.select {
-    display: grid;
-    grid-template-areas: "select";
-    align-items: center;
-    position: relative;
-    min-width: 15ch;
-    max-width: 30ch;
-    border: 1px solid var(--select-border);
-    border-radius: 0.25em;
-    padding: 0.25em 0.5em;
-    font-size: var(--font-size-table);
-    cursor: pointer;
-    line-height: 1.1;
-    background-color: #fff;
-    background-image: linear-gradient(to top, #f9f9f9, #fff 33%);
-}
-.select select, .select::after {
-    grid-area: select;
-}
-.select:not(.select--multiple)::after {
-    content: "";
-    justify-self: end;
-    width: 0.8em;
-    height: 0.5em;
-    background-color: var(--select-arrow);
-    -webkit-clip-path: polygon(100% 0%, 0 0%, 50% 100%);
-    clip-path: polygon(100% 0%, 0 0%, 50% 100%);
-}
-select:focus+.focus {
-    position: absolute;
-    top: -1px;
-    left: -1px;
-    right: -1px;
-    bottom: -1px;
-    border: 2px solid var(--select-focus);
-    border-radius: inherit;
-}
-select[multiple] {
-    padding-right: 0;
-    /*
-   * Safari will not reveal an option
-   * unless the select height has room to 
-   * show all of it
-   * Firefox and Chrome allow showing 
-   * a partial option
-   */
-    height: 8rem;
-    /* 
-   * Experimental - styling of selected options
-   * in the multiselect
-   * Not supported crossbrowser
-   */
-}
-select[multiple] option {
-    white-space: normal;
-    outline-color: var(--select-focus);
-}
-.select--disabled {
-    cursor: not-allowed;
-    background-color: #eee;
-    background-image: linear-gradient(to top, #ddd, #eee 33%);
-}
-label {
-    font-weight: 500;
-}
-.select+label {
-    margin-top: 1rem;
-}
-
-/* Spinner Styling */
-
-.spinner-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-}
-.loader-text-message {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-}
-.loader-text-progress {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-}
 .flex-row {
     display: flex;
     justify-content: space-around;
@@ -1308,6 +1285,38 @@ label {
     flex-direction: column;
     align-content: center;
     flex-direction: row;
+    width: 100%;
+}
+
+/* Spinner Styling */
+
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+.loader-spinner-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: row;
+    align-content: center;
+    width: 100%;
+}
+.loader-text-message {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.loader-text-progress {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
     width: 100%;
 }
 .loader-progress-container {
@@ -1336,7 +1345,7 @@ label {
     align-content: center;
     width: 100%;
 }
-.loader-success-count, .loader-failure-count {
+.loader-time-elapsed, .loader-success-count, .loader-failure-count {
     display: flex;
     flex-direction: row;
     padding-right: 2rem;
@@ -1974,11 +1983,45 @@ a.button {
     scrollbar-width: none;
     /* Firefox */
 }
-.tabs-container ::-webkit-scrollbar {
+.tabs-container::-webkit-scrollbar {
     display: none;
     width: 0;
     background: transparent;
     /* Safari and Chrome */
+}
+ ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+/* Track */
+
+
+/*
+        ::-webkit-scrollbar-track {
+            background: #060b12;
+            box-shadow: inset 0 0 5px grey;
+            background-color: #242b44;
+        }
+    */
+
+
+/* Handle */
+
+ ::-webkit-scrollbar-thumb {
+    background: #2d3e49;
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+
+ ::-webkit-scrollbar-thumb:hover {
+    background: #3c526f;
+}
+.tabs-container .tab-content-container .tab-content .table-container .table::-webkit-scrollbar {
+    overflow-y: scroll;
+    -ms-overflow-style: initial;
+    scrollbar-width: 8px;
 }
 @media screen and (min-width: 480px) {
     .tab-nav-item-label {

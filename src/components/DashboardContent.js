@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Heading, Text, Pane, Spinner, Dialog } from "evergreen-ui";
 import { copyToClipboard } from "copy-lite";
-import ObjMap from "./ObjectUtils/ObjMap";
+import ObjMap from "./Utilities/ObjMap";
 import Table from "./Table/Table";
 import Loader from "./Loader";
 import Tabs from "./Tabs/Tabs";
 import MapContent from "./Map/MapContent";
+import { arrayIsValid } from "./Utilities/ObjectUtils";
 
 const DashboardContent = ({
     isFetching,
@@ -21,41 +22,14 @@ const DashboardContent = ({
     setSidePanelID,
     theme,
     menu,
+    debug,
+    errorLog,
 }) => {
     const [listNumber, setListNumber] = useState(15);
     const [isBottom, setIsBottom] = useState(false);
     const [isDialogShown, setIsDialogShown] = useState(false);
     const [dialogID, setDialogID] = useState(null);
     const [isCopied, setIsCopied] = useState(false);
-
-    const UpdateStorage = () =>
-    {
-        // Init: 
-        // localStorage.setItem("uk-crime-api-database", [
-        //     {
-        //         id: 0,
-        //         date: new Date(),
-        //         queryName: "Init",
-        //         reports: [],
-        //     },
-        // ]);
-        let currentDatabase = JSON.parse(
-            localStorage.getItem("uk-crime-api-database"),
-        );
-        localStorage.setItem(
-            "uk-crime-api-database",
-            JSON.stringify([ ...currentDatabase,
-                {
-                    id: currentDatabase.length + 1,
-                    date: new Date(),
-                    queryName: queryString,
-                    reports: crimeReports
-                }
-            ])
-        );
-
-        console.log( "DashboardConrent :: UpdateStorage :: Updated database => Database = ", localStorage.getItem( "database" ) );
-    }
 
     let renderReportsList;
 
@@ -77,7 +51,7 @@ const DashboardContent = ({
                     roundedNav={true}>
                     <div className="" label="Datatable View">
                         {!isFetching &&
-                            renderReportsList.length == 0 &&
+                            renderReportsList.length === 0 &&
                             renderReportsList[0] === undefined && (
                                 <Table
                                     isVisible={showTable}
@@ -93,34 +67,40 @@ const DashboardContent = ({
                             )}
 
                         {!isFetching &&
-                            renderReportsList &&
-                            renderReportsList[0] !== undefined &&
+                            arrayIsValid(renderReportsList, true) &&
                             showTable && (
                                 <Table
-                                    isVisible={showTable}
+                                    // isVisible={showTable}
                                     isFetching={isFetching}
                                     isFilterable={true}
                                     isSortable={true}
                                     dataName={queryString}
                                     tableData={renderReportsList}
                                     setShowSidePanel={setShowSidePanel}
-                                    setSidePanelID={setSidePanelID}
-                                    hideColumns={
-                                        [
-                                            // "location_type",
-                                            // "location",
-                                            // "context",
-                                            // "location_subtype",
-                                        ]
-                                    }></Table>
+                                    setSidePanelID={setSidePanelID}></Table>
                             )}
                     </div>
-                    {showMap && !isFetching && renderReportsList && (
-                        <div className="" label="Map View">
-                            <MapContent
+                    {showMap &&
+                        !isFetching &&
+                        arrayIsValid(renderReportsList, true) && (
+                            <div className="" label="Map View">
+                                <MapContent
+                                    isFetching={isFetching}
+                                    data={renderReportsList}
+                                    theme={theme}></MapContent>
+                            </div>
+                        )}
+                    {debug && !isFetching && arrayIsValid(errorLog, true) && (
+                        <div className="" label="Debug View">
+                            <Table
+                                // isVisible={debug}
                                 isFetching={isFetching}
-                                data={renderReportsList}
-                                theme={theme}></MapContent>
+                                isFilterable={true}
+                                isSortable={true}
+                                dataName={`${queryString}_errorlog`}
+                                tableData={errorLog}
+                                setShowSidePanel={setShowSidePanel}
+                                setSidePanelID={setSidePanelID}></Table>
                         </div>
                     )}
                 </Tabs>

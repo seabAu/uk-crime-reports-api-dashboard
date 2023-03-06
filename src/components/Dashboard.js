@@ -6,73 +6,79 @@ import {
     SanitizeObjArray,
     SpliceObjArray,
     flatMapObjText,
-    isValid,
-} from "./ObjectUtils/ObjectUtils.js";
+    valIsValid,
+    validate,
+    arrayIsValid,
+    has,
+    objDeepSearch,
+    deepSearchObject,
+    deepSearch,
+} from "./Utilities/ObjectUtils.js";
+import { setElementValueById } from "./Utilities/DOMUtilities.js";
 
-import {
-    getCrimesStreetsDates,
-    getLastUpdated,
-    getCategories,
-    getForces,
-    getForceInfo,
-    getForceOfficers,
-    getNeighbourhoodTeam,
-    getCrimeReports,
-    getCrimeReportsMulti,
-    getCrimeReportsAtLocation,
-    getCrimeReportsByLocation,
-    getCrimeReportsAtLocationMulti,
-    getStopReports,
-    getStopReportsAtLocation,
-    getStopReportNoLocation,
-    getStopReportsByForce,
-    getNeighbourhoodList,
-    getNeighbourhoodInformation,
-    getNeighbourhoodCoordinates,
-    getNeighbourhoodFromCoordinates,
-    getNeighbourhoodEvents,
-    getNeighbourhoodBoundary,
-    getStreetLevelCrimesByCoordinates,
-    getStreetLevelCrimesByPolygon,
-    getCrimeOutcomes,
-} from "../api";
+// import {
+//     getCrimesStreetsDates,
+//     getLastUpdated,
+//     constructFetchError,
+//     handleFetch,
+//     getCategories,
+//     getForces,
+//     getForceInfo,
+//     getForceOfficers,
+//     getNeighbourhoodTeam,
+//     getCrimeReports,
+//     getCrimeReportsNoLocation,
+//     getCrimeReportsAtLocation,
+//     getCrimeReportsByLocation,
+//     getCrimeReportsAtLocationMulti,
+//     getStopReportsByArea,
+//     getStopReportsAtLocation,
+//     getStopReportNoLocation,
+//     getStopReportsByForce,
+//     getNeighbourhoodList,
+//     getNeighbourhoodInformation,
+//     getNeighbourhoodCoordinates,
+//     getNeighbourhoodFromCoordinates,
+//     getNeighbourhoodEvents,
+//     getNeighbourhoodBoundary,
+//     getStreetLevelCrimesByCoordinates,
+//     getStreetLevelCrimesByPolygon,
+//     getCrimeOutcomes,
+//     apiCrimeReportsByLocation,
+//     apiCrimeReportsNoLocation,
+//     apiNeighborhoodInformation,
+// } from "../api";
+import * as api from "../api";
 import Sidebar from "./Sidebar";
 import Loader from "./Loader";
 import DashboardContent from "./DashboardContent";
 import Header from "./Header";
 import SidePanel from "./SidePanel/SidePanel.js";
+import { getMetroNeighborhoodsData, getMetroResultsData } from "../api/sampledata.js";
+import { AddLocalDBEntry, getByteLength, GetDB, getLocalDBSize, InitializeLocalDB, IsDBSet, localStorageSpace, setDBKey } from "./LocalDB/LocalDatabaseHandler.js";
 
-const Dashboard = () => {
+const Dashboard = () =>
+{
+    const MAX_CONSECUTIVE_CALLS = 10;
     const [query, setQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [isFetching, setIsFetching] = useState(false);
+    const [abort, setAbort] = useState(false);
 
-    // State for query input data.
+    // State arrays for query options.
+    const [dates, setDates] = useState([]);
     const [categories, setCategories] = useState([]);
     const [forces, setForces] = useState([]);
     const [forceNeighborhoods, setForceNeighborhoods] = useState([]);
-    const [dates, setDates] = useState([]);
+
+    // State for chosen inputs.
+    const [queryString, setQueryString] = useState(""); // String for the table downloader to use for its filename. It has to be set all the way up here!
+    const [date, setDate] = useState([]); // = useState([`2022-9`]);
     const [category, setCategory] = useState("");
     const [force, setForce] = useState("");
-    const [forceNeighborhood, setForceNeighborhood] = useState([
-        {
-            id: "Not set",
-            name: "Not Set",
-        },
-    ]);
-    const [forceNeighborhoodData, setForceNeighborhoodData] = useState({});
-    const [date, setDate] = useState([`2022-9`]);
-    const [neighborhoodId, setNeighborhoodId] = useState("Not Set");
-    const [neighborhoodCoordinates, setNeighborhoodCoordinates] = useState({
-        id: "",
-        latitude: 0.0,
-        longitude: 0.0,
-    });
-    const [queryString, setQueryString] = useState(""); // String for the table downloader to use for its filename. It has to be set all the way up here!
+    const [forceNeighborhood, setForceNeighborhood] = useState([]);
 
     // State for checking if query input is valid.
-    const [categoryIsInvalid, setCategoryIsInvalid] = useState(false);
-    const [forceIsInvalid, setForceIsInvalid] = useState(false);
     const [error, setError] = useState(null);
     const [crimeReports, setCrimeReports] = useState([]);
 
@@ -102,7 +108,8 @@ const Dashboard = () => {
     const [menu, setMenu] = useState("query"); // Menu options: ["query", "map", "database", "options"]
     // axios.defaults.headers.get["Content-Type"] = "application/json;charset=utf-8";
     // axios.defaults.headers.get[ "Access-Control-Allow-Origin" ] = "*";
-
+    const [debug, setDebug] = useState(true);
+    const [errorLog, setErrorLog] = useState([]);
     const generateDateOptions = () => {
         const months = [
             "January",
@@ -123,6 +130,7 @@ const Dashboard = () => {
         const startMonth = 8;
         const start = new Date(startYear, startMonth);
         const now = new Date();
+        // const now = new Date("2020, 8");
 
         var numMonths =
             now.getMonth() -
@@ -149,47 +157,45 @@ const Dashboard = () => {
             }
         }
 
-        dates.unshift({
-            key: "all_dates",
-            value: "All Dates",
-        });
+        // dates.unshift({
+        //     key: "all_dates",
+        //     value: "All Dates",
+        // });
         // dates.splice(0, 3);
         return dates;
     };
 
-    const debugPrintState = () => {
-        console.log(
-            "\nquery = ",
-            query,
-            "\ncategory = ",
-            category,
-            "\nforce = ",
-            force,
-            "\nforceNeighborhoods = ",
-            forceNeighborhoods,
-            "\nforceNeighborhood = ",
-            forceNeighborhood,
-            "\nforceNeighborhoodData = ",
-            forceNeighborhoodData,
-            "\ndate = ",
-            date,
-            "\nneighborhoodId = ",
-            neighborhoodId,
-            "\nneighborhoodCoordinates = ",
-            neighborhoodCoordinates,
-        );
-    };
-
-    useEffect(() => {
-        Promise.all([getCategories(), getForces()])
+    // Fetch category and force options on load.
+    useEffect( () =>
+    {
+        console.log( "Onload" );
+        Promise.all([api.getCategories(), api.getForces()])
             .then(([categories, forces]) => {
+                console.log( "categories, forces = ", [categories, forces] );
                 setCategories(categories);
                 setForces(forces);
                 setDates(generateDateOptions());
                 setIsLoading(false);
             })
             .catch((error) => setError(error))
-            .then(() => setIsLoading(false));
+            .then(() => setIsLoading(false)) //;
+            .then(() => {
+                // Boot up the local DB!
+                if (!IsDBSet()) {
+                    InitializeLocalDB();
+                    setDBKey(`forces`, forces);
+                    setDBKey(`categories`, categories);
+                    setDBKey(`dates`, dates);
+                } else {
+                    console.table(
+                        "Local DB = ",
+                        GetDB(),
+                        ", currently using: ",
+                        // getLocalDBSize(),
+                        getByteLength(JSON.stringify(GetDB())),
+                    );
+                }
+            });
     }, []);
 
     // Handle updates when the selected Force is changed.
@@ -197,931 +203,71 @@ const Dashboard = () => {
         // setForce(force);
         ////// setIsLoading(true);
         if (force) {
-            Promise.all([getNeighbourhoodList(force)])
+            Promise.all([api.getNeighbourhoodList(force)])
                 .then(([forceNeighborhoods]) => {
                     setForceNeighborhoods(forceNeighborhoods);
+                    // Reset the selected force neighborhood too.
+                    setForceNeighborhood([]);
                 })
                 .catch((error) => setError(error))
                 .then(() => setIsLoading(false));
         }
     }, [force]);
 
-    // Handle updates when the ForceNeighborhoods list is changed.
-    useEffect(() => {
-        if (forceNeighborhoods) {
-            setForceNeighborhood(forceNeighborhoods[0]);
-        } else {
-            setForceNeighborhood({
-                id: "Not set",
-                name: "Not Set",
-            });
-        }
-    }, [forceNeighborhoods]);
-
-    // Handle updates when the selected ForceNeighborhood is changed.
-    useEffect(() => {
-        if (
-            forceNeighborhood === undefined ||
-            forceNeighborhood.id === undefined
-        ) {
-            return;
-        }
-        // setIsLoading(false);
-        if (force && forceNeighborhood) {
-            Promise.all([
-                getNeighbourhoodInformation(force, forceNeighborhood.id),
-            ])
-                .then(([forceNeighborhoodData]) => {
-                    setForceNeighborhoodData(forceNeighborhoodData);
-                })
-                .catch((error) => setError(error))
-                .then(() => setIsLoading(false));
-        }
-    }, [forceNeighborhood]);
-
-    // Update lat and long coordinates based on neighborhood chosen.
-    useEffect(() => {
-        if (getIsValid(forceNeighborhoodData)) {
-            let dataTemp = {
-                id: "",
-                latitude: 0,
-                longitude: 0,
-            };
-            if ("centre" in forceNeighborhoodData) {
-                if (
-                    "latitude" in forceNeighborhoodData.centre &&
-                    "longitude" in forceNeighborhoodData.centre
-                ) {
-                    dataTemp.latitude = forceNeighborhoodData.centre.latitude;
-                    dataTemp.longitude = forceNeighborhoodData.centre.longitude;
-                }
-            }
-            if ("id" in forceNeighborhoodData) {
-                dataTemp.id = forceNeighborhoodData.id;
-            }
-            console.log("Setting neighborhood coordinates = ", dataTemp);
-            setNeighborhoodCoordinates(dataTemp);
-        }
-    }, [forceNeighborhoodData]);
-
-    // Update lat and long coordinates based on neighborhood chosen.
-    useEffect(() => {
-        if (getIsValid(neighborhoodCoordinates)) {
-            if (
-                "id" in neighborhoodCoordinates &&
-                "latitude" in neighborhoodCoordinates &&
-                "longitude" in neighborhoodCoordinates
-            ) {
-                const latitudeElement = document.getElementById("latitude");
-                if (latitudeElement) {
-                    latitudeElement.value = neighborhoodCoordinates.latitude;
-                }
-                const longitudeElement = document.getElementById("longitude");
-                if (longitudeElement) {
-                    longitudeElement.value = neighborhoodCoordinates.longitude;
-                }
-                const locationIDElement =
-                    document.getElementById("location_id");
-                if (longitudeElement) {
-                    locationIDElement.value = neighborhoodCoordinates.id;
-                }
-            }
-        }
-    }, [neighborhoodCoordinates]);
-
     // Mainly used for debug, use this to update the text outputs for all the changes in state.
     useEffect(() => {
-        debugPrintState();
-        if (force !== undefined) {
-            if (getIsValid(force)) {
-                // , String ) ) {
-                const forceElement =
-                    document.getElementById("forceTextDisplay");
-                if (forceElement) {
-                    forceElement.value = force;
-                }
-            }
-        }
-        if (category !== undefined) {
-            if (getIsValid(category)) {
-                const categoryElement = document.getElementById(
-                    "categoryTextDisplay",
-                );
-                if (categoryElement) {
-                    categoryElement.value = category;
-                }
-            }
-        }
-        if (date !== undefined) {
-            if (getIsValid(date)) {
-                const dateElement = document.getElementById("dateTextDisplay");
-                if (dateElement) {
-                    dateElement.value = date;
-                }
-            }
-        }
-        if (forceNeighborhoods !== undefined) {
-            if (getIsValid(forceNeighborhoods)) {
-                const forceNeighborhoodsElement = document.getElementById(
-                    "forceNeighborhoodsTextDisplay",
-                );
-                if (forceNeighborhoodsElement) {
-                    forceNeighborhoodsElement.value =
-                        // JSON.stringify(forceNeighborhoods);
-                        flatMapObjText(forceNeighborhoods);
-                }
-            }
-        }
-        if (forceNeighborhood !== undefined) {
-            if (getIsValid(forceNeighborhood)) {
-                const forceNeighborhoodElement = document.getElementById(
-                    "forceNeighborhoodTextDisplay",
-                );
-                if (forceNeighborhoodElement) {
-                    forceNeighborhoodElement.value =
-                        // JSON.stringify(forceNeighborhood);
-                        flatMapObjText(forceNeighborhood);
-                }
-            }
-        }
-        if (forceNeighborhoodData !== undefined) {
-            if (getIsValid(forceNeighborhoodData)) {
-                const forceNeighborhoodDataElement = document.getElementById(
-                    "forceNeighborhoodDataTextDisplay",
-                );
-                if (forceNeighborhoodDataElement) {
-                    forceNeighborhoodDataElement.value =
-                        // JSON.stringify( forceNeighborhoodData );
-                        flatMapObjText(forceNeighborhoodData);
-                }
-                if ("centre" in forceNeighborhoodData) {
-                    if ("latitude" in forceNeighborhoodData.centre) {
-                        const latitudeElement = document.getElementById(
-                            "latitudeTextDisplay",
-                        );
-                        if (latitudeElement) {
-                            latitudeElement.value =
-                                forceNeighborhoodData.centre.latitude;
-                        }
-                        // latitudeElement.value =
-                        //     (forceNeighborhood !== undefined)
-                        //         ? (forceNeighborhoodData !== undefined && forceNeighborhoodData != null)
-                        //             ? (forceNeighborhoodData.centre.latitude !== undefined)
-                        //                 ? forceNeighborhoodData.centre.latitude
-                        //                 : 0
-                        //             : 0
-                        //         : 0;
-                    }
-                    if ("longitude" in forceNeighborhoodData.centre) {
-                        const longitudeElement = document.getElementById(
-                            "longitudeTextDisplay",
-                        );
-                        if (longitudeElement) {
-                            longitudeElement.value =
-                                forceNeighborhoodData.centre.longitude;
-                        }
-                    }
-                }
-            }
-        }
+        console.log(
+            "\nquery = ",
+            query,
+            "\nmenu = ",
+            menu,
+            "\ncategories = ",
+            categories,
+            "\ncategory = ",
+            category,
+            "\nforces = ",
+            forces,
+            "\nforce = ",
+            force,
+            "\nforceNeighborhoods = ",
+            forceNeighborhoods,
+            "\nforceNeighborhood = ",
+            forceNeighborhood,
+            "\ndate = ",
+            date,
+            "\nisFetching = ",
+            isFetching,
+            "\nshowContent = ",
+            showContent,
+            "\nshowTable = ",
+            showTable,
+            "\nshowMap = ",
+            showMap,
+            "\nqueryString = ",
+            queryString,
+        );
     }, [
+        query,
+        menu,
+        forces,
         force,
         date,
+        categories,
         category,
         forceNeighborhoods,
         forceNeighborhood,
-        forceNeighborhoodData,
+        isFetching,
+        showContent,
+        showTable,
+        showMap,
+        queryString,
     ]);
-
-    function getIsValid(value) {
-        // console.log( "getIsValid:", value, typeof value );
-        if (value !== undefined) {
-            if (value !== null) {
-                // if ( value instanceof expectedType )
-                if (value) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    // Handles searching for multiple (or all) dates. Will later expand to allow multiple neighborhoods as well for multi-location search.
-    const handleSequentialSearch = async (event) => {
-        event.preventDefault();
-        console.log(
-            "handleSequentialSearch triggered:: ",
-            force,
-            category,
-            date,
-            "event values: ",
-            event.values,
-        );
-        if (!category) return setCategoryIsInvalid(true);
-        if (!force) return setForceIsInvalid(true);
-
-        setCategoryIsInvalid(false);
-        setForceIsInvalid(false);
-        setIsFetching(true);
-        setShowMap(false);
-        setShowTable(false);
-        setShowContent(true);
-
-        // Clear the table.
-        setTimeout(() => {
-            setCrimeReports([]);
-        }, 1000);
-
-        let datesArray = [];
-        if (date === "all_dates") {
-            // Create the query string so the downloadable file has the right filename.
-            setQueryString(
-                `SearchNoLocation_${[force, category, "all-dates"].join("_")}`,
-            );
-
-            // Get only the date keys in the YYYY-MM format, not their labels.
-            datesArray = dates
-                .filter((dateObject) => {
-                    return dateObject.key !== "all_dates";
-                })
-                .map((dateObject) => dateObject.key); // dates.splice( 1, dates.length );
-            console.log(
-                "handleSequentialSearch with all_dates: ",
-                dates,
-                datesArray,
-            );
-        } else {
-            // Create the query string so the downloadable file has the right filename.
-            setQueryString(
-                `SearchNoLocation_${[force, category, date.join("+")].join(
-                    "_",
-                )}`,
-            );
-
-            // Get only the date keys in the YYYY-MM format, not their labels.
-            datesArray = date.map((dateObject) => dateObject.key);
-            console.log(
-                "handleSequentialSearch with specific dates array: ",
-                date,
-                dates,
-                datesArray,
-            );
-        }
-
-        let reports = [];
-        let numCalls = datesArray.length;
-        let currCall = 0;
-        for (const month of datesArray) {
-            let res = await getCrimeReportsMulti(category, force, month);
-
-            setProgressInfo([{
-                message: `Fetching crime reports for month ${currCall} of ${numCalls}`,
-                currValue: currCall,
-                endValue: numCalls,
-            }]);
-            currCall++;
-            // reports.concat( res );
-            if (res) {
-                reports = [...reports, ...res];
-            }
-            console.log(
-                "res = ",
-                res,
-                "reports = ",
-                reports,
-                ", time = ",
-                new Date(),
-            );
-        }
-        if (reports) {
-            setCrimeReports(reports);
-            console.log("Setting reports: ", reports);
-        }
-        console.log("reports = ", reports);
-
-        setShowTable(true);
-        setProgressInfo([{ message: "", currValue: 0 }]);
-        setIsFetching(false);
-        // }
-    };
-
-    // }, [forceNeighborhood]);
-    const handleSearch = async (event) => {
-        event.preventDefault();
-        setShowTable(false);
-        setShowMap(false);
-        setShowContent(true);
-        console.log(
-            "handleSearch triggered:: ",
-            force,
-            category,
-            date,
-            "event values: ",
-            event.values,
-        );
-        if (!category) return setCategoryIsInvalid(true);
-        if (!force) return setForceIsInvalid(true);
-
-        setCategoryIsInvalid(false);
-        setForceIsInvalid(false);
-        setIsFetching(true);
-
-        // Create the query string so the downloadable file has the right filename.
-        setQueryString(`SearchNoLocation_${[force, category, date].join("_")}`);
-        console.log("queryString = ", queryString);
-        // Clear the table.
-        setTimeout(() => {
-            setCrimeReports([]);
-        }, 1000);
-
-        if (date === "all_dates" || Array.isArray(date)) {
-            handleSequentialSearch(event);
-            return;
-        } else {
-            setTimeout(() => {
-                getCrimeReports(category, force, date)
-                    .then((crimeReports) => {
-                        if (crimeReports) {
-                            setCrimeReports(crimeReports);
-                        }
-                    })
-                    .then(() => setIsFetching(false))
-                    // .then(() => scrollBottom())
-                    .catch((error) => setError(error));
-            }, 1000);
-        }
-        setShowTable(true);
-    };
-
-    const handleSearchAtLocation = async (event) => {
-        event.preventDefault();
-        setShowMap(false);
-        setShowTable(false);
-        setShowContent(true);
-        if (neighborhoodCoordinates) {
-            if (
-                "latitude" in neighborhoodCoordinates &&
-                "longitude" in neighborhoodCoordinates
-            ) {
-                let latitude = neighborhoodCoordinates.latitude;
-                let longitude = neighborhoodCoordinates.longitude;
-
-                console.log(
-                    "handleSearchAtLocation triggered:: ",
-                    latitude,
-                    longitude,
-                );
-                if (!latitude) {
-                    console.log(
-                        "handleSearchAtLocation(): ",
-                        "Err: Undefined coordinates",
-                    );
-                    return;
-                } // setCategoryIsInvalid(true);
-                if (!longitude) {
-                    console.log(
-                        "handleSearchAtLocation(): ",
-                        "Err: Undefined coordinates",
-                    );
-                    return;
-                } // setForceIsInvalid(true);
-
-                // Create the query string so the downloadable file has the right filename.
-                setQueryString(
-                    `SearchByLocation_${[latitude, longitude].join("_")}`,
-                );
-
-                // Clear the table.
-                setTimeout(() => {
-                    setCrimeReports([]);
-                }, 1000);
-
-                setIsFetching(true);
-                setTimeout(() => {
-                    getCrimeReportsAtLocation(latitude, longitude)
-                        .then((crimeReports) => {
-                            if (crimeReports) {
-                                setCrimeReports(crimeReports);
-                            }
-                        })
-                        .then(() => {
-                            console.log(crimeReports);
-                        })
-                        .then(() => setIsFetching(false))
-                        // .then(() => scrollBottom())
-                        .catch((error) => setError(error));
-                }, 1000);
-                setProgressInfo([{ message: "", currValue: 0 }]);
-                setShowTable(true);
-                setShowMap(true);
-            }
-        }
-    };
-
-    const handleSearchByLocation = async (event) => {
-        event.preventDefault();
-        setShowMap(false);
-        setShowTable(false);
-        setShowContent(true);
-        if (date && neighborhoodCoordinates) {
-            let latitude;
-            let longitude;
-            let location_id;
-            if (
-                "latitude" in neighborhoodCoordinates &&
-                "longitude" in neighborhoodCoordinates
-            ) {
-                latitude = neighborhoodCoordinates.latitude;
-                longitude = neighborhoodCoordinates.longitude;
-
-                console.log(
-                    "handleSearchByLocation triggered:: ",
-                    latitude,
-                    longitude,
-                );
-
-                if (!latitude) {
-                    console.log(
-                        "handleSearchByLocation(): ",
-                        "Err: Undefined coordinates",
-                    );
-                    return;
-                } // setCategoryIsInvalid(true);
-                if (!longitude) {
-                    console.log(
-                        "handleSearchByLocation(): ",
-                        "Err: Undefined coordinates",
-                    );
-                    return;
-                } // setForceIsInvalid(true);
-
-                // Create the query string so the downloadable file has the right filename.
-                setQueryString(
-                    `SearchByLocation_${[latitude, longitude].join("_")}`,
-                );
-
-                // Clear the table.
-                setTimeout(() => {
-                    setCrimeReports([]);
-                }, 1000);
-
-                setIsFetching(true);
-                setTimeout(() => {
-                    getCrimeReportsByLocation(date, latitude, longitude)
-                        .then((crimeReports) => {
-                            if (crimeReports) {
-                                setCrimeReports(crimeReports);
-                            }
-                        })
-                        .then(() => {
-                            console.log(
-                                `getCrimeReportsByLocation(${date}, ${latitude}, ${longitude}) = `,
-                                crimeReports,
-                            );
-                        })
-                        .then(() => setIsFetching(false))
-                        // .then(() => scrollBottom())
-                        .catch((error) => setError(error));
-                }, 1000);
-                setProgressInfo([{ message: "", currValue: 0 }]);
-                setShowTable(true);
-                setShowMap(true);
-            }
-        }
-    };
-
-    const getNeighbourhoodDataMulti = async (force, neighborhoods) => {
-        console.log(`getNeighbourhoodDataMulti :: `, force, neighborhoods);
-        let locations = [];
-        let numCalls = neighborhoods.length;
-        let currCall = 0;
-        for (const neighborhood of neighborhoods) {
-            // Update the fetch loader message
-            setProgressInfo([{
-                message: `Fetching coordinates for location ${currCall} of ${numCalls}`,
-                currValue: currCall,
-                endValue: numCalls,
-            }]);
-            currCall++;
-            if (neighborhood) {
-                if ("id" in neighborhood) {
-                    let res = await getNeighbourhoodInformation(
-                        force,
-                        neighborhood.id,
-                    );
-
-                    // reports.concat( res );
-                    // Make sure it returned valid data we can use.
-                    if (res) {
-                        if (typeof res === "object") {
-                            if ("centre" in res) {
-                                // Combine the data.
-                                res = Object.assign(
-                                    res,
-                                    { force_id: force },
-                                    neighborhood,
-                                );
-                                locations.push(res); // .centre);
-                                // console.log("RES was valid :: ", res);
-                            }
-                        } else {
-                            console.error("RES was invalid :: ", res);
-                        }
-                        // locations = [...locations, ...res];
-                    }
-                    console.log(`getNeighbourhoodDataMulti() :: `,
-                        "res = ",
-                        res,
-                        "locations = ",
-                        locations,
-                        ", time = ",
-                        new Date(),
-                    );
-                }
-            }
-        }
-        console.log("getNeighbourhoodDataMulti() :: post-execution :: locations = ", locations);
-
-        // return locations.map( ( loc, index ) =>
-        // {
-        //     if ( loc )
-        //     {
-        //         return loc.centre;
-        //     }
-        //     else { return ''; }
-        // } );
-        return locations;
-    };
-
-    // Handles searching for multiple (or all) neighborhoods.
-    // Due to the nature of the relational database's schema (see: <insert photo of a dumpster fire here>),
-    // we first have to call the API for the location coordinates for each and every neighborhood listed for the
-    // selected force.
-    const handleSequentialSearchByLocation = async (event) => {
-        event.preventDefault();
-        setShowMap(false);
-        setShowTable(false);
-        setShowContent(true);
-        // console.log(
-        //     "handleSequentialSearchByLocation triggered :: ",
-        //     force,
-        //     category,
-        //     forceNeighborhoods,
-        //     "event values: ",
-        //     event.values,
-        // );
-        if (!force) return setForceIsInvalid(true);
-
-        setCategoryIsInvalid(false);
-        setForceIsInvalid(false);
-        setIsFetching(true);
-
-        // Clear the table.
-        setTimeout(() => {
-            setCrimeReports([]);
-        }, 1000);
-
-        setQueryString(`SearchAllLocations_${force}`);
-        let neighborhoodsArray = [];
-        // Create the query string so the downloadable file has the right filename.
-        // Get only the date keys in the YYYY-MM format, not their labels.
-        neighborhoodsArray = forceNeighborhoods.filter((neighborhood) => {
-            return neighborhood.id !== undefined;
-        });
-        console.log(
-            "handleSequentialSearchByLocation with specific neighborhoods array: ",
-            force,
-            category,
-            neighborhoodsArray,
-        );
-
-        let neighborhoodDataArray = await getNeighbourhoodDataMulti(
-            force,
-            neighborhoodsArray,
-        );
-
-        // Update the fetch loader message
-        setProgressInfo([{
-            message: "Fetching crime reports data for coordinates...",
-            currValue: 0,
-        }]);
-        let numCalls = neighborhoodDataArray.length;
-        let currCall = 0;
-        let reports = [];
-        // console.log("locations = ", neighborhoodDataArray);
-        for (const neighborhoodData of neighborhoodDataArray) {
-            // console.log( "neighborhoodData = ", neighborhoodData );
-
-            setProgressInfo([{
-                message: `Fetching reports for location ${currCall} of ${numCalls}`,
-                currValue: currCall,
-                endValue: numCalls,
-            }]);
-            currCall++;
-            if (neighborhoodData) {
-                if ("centre" in neighborhoodData) {
-                    if (
-                        "latitude" in neighborhoodData.centre &&
-                        "longitude" in neighborhoodData.centre
-                    ) {
-                        let res = await getCrimeReportsAtLocationMulti(
-                            neighborhoodData.centre.latitude,
-                            neighborhoodData.centre.longitude,
-                        );
-                        // reports.concat( res );
-                        if (res) {
-                            // let compiled = Object.assign(
-                            //     res,
-                            //     { force_id: force },
-                            //     neighborhoodData,
-                            // );
-                            let compiled = SpliceObjArray(res, {
-                                force_id: force,
-                                neighborhood: neighborhoodData.name,
-                            });
-                            reports = [...reports, ...compiled];
-                            console.log(
-                                "\n\nneighborhoodData = ",
-                                neighborhoodData,
-                                "\n\nres = ",
-                                res,
-                                "\n\nreports = ",
-                                reports,
-                                "\n\ncompiled = ",
-                                compiled,
-                                // "\n\nsanitized = ",
-                                // sanitizeObjArray( compiled )
-                                // "\ntime = ",
-                                // new Date(),
-                            );
-                        } else {
-                            console.error("RES was invalid :: ", res);
-                        }
-                    } else {
-                        console.error(
-                            "neighborhoodData = ",
-                            neighborhoodData,
-                            " didn't have coordinates data",
-                        );
-                    }
-                } else {
-                    console.error(
-                        "neighborhoodData = ",
-                        neighborhoodData,
-                        " didn't have centre data",
-                    );
-                }
-            } else {
-                console.error(
-                    "neighborhoodData = ",
-                    neighborhoodData,
-                    " was undefined.",
-                );
-            }
-        }
-        if (reports) {
-            setCrimeReports(reports);
-            console.log("Setting reports: ", reports);
-        }
-        console.log("reports = ", reports);
-
-        setProgressInfo([{ message: "", currValue: 0 }]);
-        setIsFetching(false);
-        setShowTable(true);
-        setShowMap(true);
-        // }
-    };
-
-    // Handles searching for multiple (or all) neighborhoods.
-    // Due to the nature of the relational database's schema (see: <insert photo of a dumpster fire here>),
-    // we first have to call the API for the location coordinates for each and every neighborhood listed for the
-    // selected force.
-    const handleSequentialSearchAllLocationsAllDates = async (event) => {
-        event.preventDefault();
-        setShowMap(false);
-        setShowTable(false);
-        setIsFetching(true);
-        setShowContent(true);
-        // console.log(
-        //     "handleSequentialSearchAllLocationsAllDates triggered :: ",
-        //     force,
-        //     category,
-        //     forceNeighborhoods,
-        //     "event values: ",
-        //     event.values,
-        // );
-        if (!force) return setForceIsInvalid(true);
-
-        setCategoryIsInvalid(false);
-        setForceIsInvalid(false);
-
-        // Clear the table.
-        setTimeout(() => {
-            setCrimeReports([]);
-        }, 1000);
-
-        setQueryString( `SearchAllLocationsAllDates_${ force }` );
-        
-        // Construct the array of neighborhood ids/coordinate pairs.
-        let neighborhoodsArray = [];
-        // Create the query string so the downloadable file has the right filename.
-        // Get only the date keys in the YYYY-MM format, not their labels.
-        neighborhoodsArray = forceNeighborhoods.filter((neighborhood) => {
-            return neighborhood.id !== undefined && neighborhood.id !== "all_neighborhoods";
-        });
-
-        let neighborhoodDataArray = await getNeighbourhoodDataMulti(
-            force,
-            neighborhoodsArray,
-        );
-
-        // Construct the array of available dates.
-        
-        let datesArray = [];
-        if (date === "all_dates") {
-            // Get only the date keys in the YYYY-MM format, not their labels.
-            datesArray = dates
-                .filter((dateObject) => {
-                    return dateObject.key !== "all_dates";
-                })
-                .map((dateObject) => dateObject.key); // dates.splice( 1, dates.length );
-        } else {
-            // Get only the date keys in the YYYY-MM format, not their labels.
-            if ( Array.isArray( date ) )
-            {
-                datesArray = date
-                    .filter((dateObject) => {
-                        return dateObject.key !== undefined && dateObject.key !== "all_dates";
-                    })
-                    .map((dateObject) => dateObject.key);
-            }
-            else
-            {
-                datesArray = [date.toString()];
-            }
-        }
-
-        console.log(
-            "handleSequentialSearchAllLocationsAllDates with neighborhoods array: ",
-            force,
-            category,
-            neighborhoodsArray, " and dates array: ", datesArray
-        );
-
-        // Update the fetch loader message
-        let numNeighborhoods = neighborhoodDataArray.length;
-        let currNeighborhood = 0;
-        
-        let numMonths = datesArray.length;
-        let successes = 0;
-        let failures = 0;
-        let reports = [];
-        // console.log("locations = ", neighborhoodDataArray);
-        for ( const neighborhoodData of neighborhoodDataArray )
-        {
-            // Call for each neighborhood.
-            // console.log( "neighborhoodData = ", neighborhoodData );
-
-            currNeighborhood++;
-            if (neighborhoodData) {
-                if ("centre" in neighborhoodData) {
-                    if (
-                        "latitude" in neighborhoodData.centre &&
-                        "longitude" in neighborhoodData.centre
-                    )
-                    {
-                        let currMonth = 0;
-                        // Call for each date.
-                        for ( const month of datesArray )
-                        {
-                            setProgressInfo([
-                                {
-                                    id: "neighborhoodsProgress",
-                                    message: `Fetching reports for location ${currNeighborhood} of ${numNeighborhoods}`,
-                                    currValue: currNeighborhood,
-                                    endValue: numNeighborhoods,
-                                    success: successes,
-                                    failure: failures,
-                                },
-                                {
-                                    id: "monthsProgress",
-                                    message: `Fetching reports for month ${currMonth} of ${numMonths}`,
-                                    currValue: currMonth,
-                                    endValue: numMonths,
-                                    success: successes,
-                                    failure: failures,
-                                },
-                            ]);
-                            currMonth++;
-                            // console.log( "CURRMONTH = ", currMonth );
-                            let res = await getCrimeReportsByLocation(
-                                month,
-                                neighborhoodData.centre.latitude,
-                                neighborhoodData.centre.longitude,
-                            );
-                            // console.log(
-                            //     `handleSequentialSearchAllLocationsAllDates :: Calling getCrimeReportsByLocation( ${month}, ${neighborhoodData.centre.latitude}, ${neighborhoodData.centre.longitude} ) with RES = `, res
-                            // );
-                            // reports.concat( res );
-                            if ( res )
-                            {
-                                if ( res === "ERR: INVALID/UNDEFINED INPUT" )
-                                {
-                                    failures++;
-                                    // console.error( `handleSequentialSearchAllLocationsAllDates :: Calling getCrimeReportsByLocation( ${month}, ${neighborhoodData.centre.latitude}, ${neighborhoodData.centre.longitude} ) resulted in ERR: INVALID/UNDEFINED INPUT`
-                                    // );
-                                } else
-                                {
-                                    // let compiled = Object.assign(
-                                    //     res,
-                                    //     { force_id: force },
-                                    //     neighborhoodData,
-                                    // );
-                                    let compiled = SpliceObjArray(res, {
-                                        force_id: force,
-                                        neighborhood: neighborhoodData.name,
-                                    });
-                                    successes++;
-                                    reports = [...reports, ...compiled];
-                                    // console.log(
-                                    //     "\n\nneighborhoodData = ",
-                                    //     neighborhoodData,
-                                    //     "\n\nres = ",
-                                    //     res,
-                                    //     "\n\nreports = ",
-                                    //     reports,
-                                    //     "\n\ncompiled = ",
-                                    //     compiled,
-                                    //     // "\n\nsanitized = ",
-                                    //     // sanitizeObjArray( compiled )
-                                    //     // "\ntime = ",
-                                    //     // new Date(),
-                                    // );
-                                }
-                            } else {
-                                failures++;
-                                console.error("RES was invalid :: ", res);
-                            }
-                        }
-                    } else {
-                        failures++;
-                        console.error(
-                            "neighborhoodData = ",
-                            neighborhoodData,
-                            " didn't have coordinates data",
-                        );
-                    }
-                } else {
-                    failures++;
-                    console.error(
-                        "neighborhoodData = ",
-                        neighborhoodData,
-                        " didn't have centre data",
-                    );
-                }
-            } else {
-                failures++;
-                console.error(
-                    "neighborhoodData = ",
-                    neighborhoodData,
-                    " was undefined.",
-                );
-            }
-        }
-        if (reports) {
-            setCrimeReports(reports);
-            console.log("Setting reports: ", reports);
-        }
-        console.log("reports = ", reports);
-
-        setProgressInfo([{ message: "", currValue: 0 }]);
-        setIsFetching(false);
-        setShowTable(true);
-        setShowMap(true);
-        // }
-    };
-
-    useEffect(() => {
-        console.log("isFetching = ", isFetching);
-    }, [isFetching]);
-
-    useEffect(() => {
-        console.log("showContent = ", showContent);
-    }, [showContent]);
-
-    useEffect(() => {
-        console.log("showTable = ", showTable);
-    }, [showTable]);
-
-    useEffect(() => {
-        console.log("showMap = ", showMap);
-    }, [showMap]);
 
     // Useeffect for handling the side panel
     useEffect(() => {
         console.log("SidePanelID = ", sidePanelID);
         if (sidePanelID && sidePanelID !== " ") {
-            Promise.all([getCrimeOutcomes(sidePanelID)])
+            Promise.all([api.getCrimeOutcomes(sidePanelID)])
                 .then(([sidePanelData]) => {
                     setSidePanelData(sidePanelData);
                     setIsLoading(false);
@@ -1136,99 +282,633 @@ const Dashboard = () => {
         }
     }, [sidePanelID]);
 
+    useEffect(() => {
+        console.log(`Dashboard :: ABORT = ${abort ? "TRUE" : "FALSE"}`);
+        if (abort === true) {
+            // Abort whatever query we're performing right now.
+            // Reset the value.
+            setTimeout(() => {
+                // Reset the abort flag.
+                setAbort(false);
+            }, 8000);
+        }
+    }, [abort]);
+
+    const getDataForNeighborhoods = async (force, neighborhoods) => {
+        let src = `getDataForNeighborhoods`;
+        // console.log(`${src} :: `, force, neighborhoods);
+
+        if (arrayIsValid(neighborhoods)) {
+            // console.log(`${src} :: `, neighborhoods, ` is a valid array. `);
+            let callArray = [];
+            for (const neighborhood of neighborhoods) {
+                // console.log(`${src} :: `, neighborhood);
+                if (neighborhood) {
+                    let id;
+                    if (typeof neighborhood === "object") {
+                        if ("id" in neighborhood) {
+                            id = neighborhood.id;
+                        }
+                    } else {
+                        id = neighborhood;
+                    }
+                    let newCall = api.apiNeighborhoodInformation(force, id);
+                    callArray.push({
+                        ...newCall,
+                        neighborhood_info: {
+                            force_id: force,
+                            id: id,
+                        },
+                    });
+                    // console.log(`${src} :: CallArray is now: `, callArray);
+                    // let res = await getNeighbourhoodInformation(
+                    //     force,
+                    //     id,
+                    // );
+                }
+            }
+            // return locations;
+
+            let errors = [];
+            let results = [];
+            // console.log(
+            //     `${src} :: CallArray constructed :: `,
+            //     callArray,
+            // );
+            if (callArray) {
+                // results = await handleFetchArray(callArray, src, results, []);
+                results = await batchFetchArray(callArray, src, [
+                    "force_id",
+                    "neighborhood_name",
+                    // "neighborhood_id",
+                ]);
+                results = results.results;
+                errors = results.errors;
+                console.log(
+                    `${src} :: results = `,
+                    results,
+                    `, errors = `,
+                    errors,
+                );
+                return results;
+            } else {
+                console.error(
+                    `ERR::${src} :: CallArray was not constructed correctly :: `,
+                    force,
+                    neighborhoods,
+                );
+                return [];
+            }
+        } else {
+            console.error(
+                `ERR::${src} :: Given undefined values :: `,
+                force,
+                neighborhoods,
+            );
+            return [];
+        }
+    };
+
+    const getSelectedNeighborhoods = (input) => {
+        if (
+            input === "all_neighborhoods" ||
+            input.toString().includes("all_neighborhoods")
+        ) {
+            // Select all neighborhoods regardless of which ones are selected alongside the "all_neighborhoods" option.
+            return forceNeighborhoods
+                .filter((neighborhood) => {
+                    // return neighborhood.key !== "all_neighborhoods";
+                    return (
+                        neighborhood.id !== undefined &&
+                        neighborhood.id !== "all_neighborhoods"
+                    );
+                })
+                .map((neighborhood) => neighborhood.id); // dates.splice( 1, dates.length );
+        } else {
+            // More than 1 neighborhood is selected, but not all of them. Run through and make sure none of them are invalid.
+            if (Array.isArray(input)) {
+                return input.filter((neighborhood) => {
+                    return (
+                        neighborhood !== undefined &&
+                        neighborhood !== "all_neighborhoods"
+                    );
+                });
+                // .map((neighborhood) => neighborhood.key);
+            } else {
+                return [input.toString()];
+            }
+        }
+    };
+
+    const getSelectedDates = (input) => {
+        if (input === "all_dates" || input.toString().includes("all_dates")) {
+            // Get only the date keys in the YYYY-MM format, not their labels.
+            return dates
+                .filter((dateObject) => {
+                    return dateObject.key !== undefined && dateObject.key !== "all_dates";
+                })
+                .map((dateObject) => dateObject.key); // dates.splice( 1, dates.length );
+        } else {
+            // Get only the date keys in the YYYY-MM format, not their labels.
+            if (Array.isArray(input)) {
+                return input.filter((dateID) => {
+                    return dateID !== undefined && dateID !== "all_dates";
+                });
+                // .map((dateObject) => dateObject.key);
+            } else {
+                return [input.toString()];
+            }
+        }
+    };
+
+    const handleSearch = async (event) => {
+        event.preventDefault();
+        let src = `handleSearch`;
+        console.log(
+            `${src} triggered :: `,
+            force,
+            date,
+            `, query = `,
+            query,
+            // `, query.apiCall(query) = `,
+            // query.apiCall(query),
+        );
+        // console.log(`${src} triggered :: `, force, date, `, query = `, query, query.apiValues, query.apiCall(), event, event.target, event.target.date.value, event.target.force.value);
+
+        setIsFetching(true);
+        setShowMap(false);
+        setShowTable(false);
+        setShowContent(true);
+
+        // Clear the table.
+        setTimeout(() => {
+            setCrimeReports([]);
+        }, 1000);
+
+        // For some reason, the query object won't have the latest state data, so let's pass it along to it.
+        let apiQuery = query;
+        let apiQueryValues = apiQuery.apiValues;
+        if ("date" in apiQueryValues) {
+            if (!date) {
+                return;
+            }
+            apiQueryValues.date = getSelectedDates(date);
+        }
+        if ("force" in apiQueryValues) {
+            if (!force) {
+                return;
+            }
+            apiQueryValues.force = force;
+        }
+        if ("category" in apiQueryValues) {
+            if (!category) {
+                return;
+            }
+            apiQueryValues.category = category;
+        }
+
+        if ("neighborhood" in apiQueryValues) {
+            if (!forceNeighborhood) {
+                return;
+            }
+            apiQueryValues.neighborhood =
+                getSelectedNeighborhoods(forceNeighborhood);
+        }
+
+        // if ( "lat" in apiQueryValues || "lng" in apiQueryValues )
+        if (
+            "location_centre" in apiQueryValues ||
+            "location_id" in apiQueryValues
+        ) {
+            if (!forceNeighborhood) {
+                return;
+            }
+            // Wait for data to come back about the selected set of neighborhoods.
+            let neighborhoodsArray =
+                getSelectedNeighborhoods(forceNeighborhood);
+
+            let neighborhoodDataArray = await getDataForNeighborhoods(
+                force,
+                neighborhoodsArray,
+            );
+            if ("location_centre" in apiQueryValues) {
+                apiQueryValues.location_centre = neighborhoodDataArray;
+            }
+            if ("location_id" in apiQueryValues) {
+                apiQueryValues.location_id = neighborhoodDataArray;
+            }
+        }
+
+        apiQuery.apiValues = apiQueryValues;
+        console.log(
+            `${src} config before fetching call array: :: `,
+            force,
+            date,
+            `, query = `,
+            query,
+            `, query.apiCall(query) = `,
+            query.apiCall(apiQuery),
+        );
+        let callArray = await query.apiCall(apiQuery);
+
+        let results = [];
+        console.log(`${src} :: CallArray constructed :: `, callArray);
+        if (callArray) {
+            if (callArray.length > 0) {
+                setQueryString(`${query.id ?? src}_${force}`);
+                // results = await handleFetchArray(callArray, src, results, []);
+                results = await batchFetchArray(callArray, src, results, []);
+                let reports = results.results;
+                let errors = results.errors;
+
+                if (reports) {
+                    setCrimeReports(reports);
+                    console.log("Setting reports: ", reports);
+                }
+                if (errors) {
+                    setErrorLog(errors);
+                    console.log("Setting errors log: ", errors);
+                }
+                setShowTable(true);
+                // Check if there is any location data in the results before enabling the map.
+                setShowMap(true);
+            }
+        } else {
+            return;
+        }
+        console.log("reports = ", results);
+
+        setProgressInfo([{ message: "", currValue: 0 }]);
+        setIsFetching(false);
+
+        // Finally, update the local DB with the query vars, the query results, and the query error log.
+    };
+
+    // This version clumps urls into groups of (up to) 15 fetch-promises and uses Promise.AllSettled to batch resolve them.
+    const batchFetchArray = async (
+        callArray,
+        src,
+        splicekeys,
+        isRetry = false,
+        batchSize,
+    ) => {
+        let errors = [];
+        let results = [];
+        batchSize = MAX_CONSECUTIVE_CALLS;
+        if (callArray.length < MAX_CONSECUTIVE_CALLS) {
+            batchSize = callArray.length; //  - 1;
+        }
+
+        console.log(`batchFetchArray :: CallArray received :: `, callArray);
+        if (callArray) {
+            if (callArray.length > 0) {
+                // Start callin'!
+
+                let currTime = new Date();
+                let callNum = 0;
+                let successes = 0;
+                let startTime = new Date();
+                let callVars;
+                let callURL;
+
+                let retryCalls = [];
+                let promiseBatch = [];
+
+                setProgressInfo([
+                    {
+                        id: `batchFetchProgress_${src}`,
+                        message: `Fetching results for call ${callNum} of ${callArray.length}`, // :: ${currCall}`,
+                        currValue: 0,
+                        endValue: callArray.length,
+                        startTime: startTime,
+                        currTime: currTime,
+                        results: 0,
+                        success: 0,
+                        failure: 0,
+                        currentCall: ``,
+                    },
+                ]);
+
+                let i = 0;
+                for (i = 0; i < callArray.length && abort !== true; i++) {
+                    // console.log(`batchFetchArray :: running call #${i}: `, callArray[i]);
+                    // First, if abort is triggered, halt the loop and return what we have so far.
+                    // if ( abort === true )
+                    // {
+                    //     promiseBatch = [];
+                    //     console.log(
+                    //         "Aborting! Returning results = ",
+                    //         results,
+                    //         " and error log = ",
+                    //         errors,
+                    //     );
+                    //     return {
+                    //         results: results,
+                    //         errors: errors,
+                    //     };
+                    // }
+                    let call = callArray[i];
+
+                    // for (const call of callArray) {
+                    currTime = new Date();
+                    callVars = call.vars;
+                    callURL = call.url;
+                    callNum++;
+                    let currentCall = `handleFetch( ${callURL}, ${callVars}, ${src} )`;
+                    let seconds =
+                        (currTime.getTime() - startTime.getTime()) / 1000;
+                    let callsPerSecond = Math.round((i / seconds) * 100) / 100;
+                    setProgressInfo([
+                        {
+                            id: `batchFetchProgress_${src}`,
+                            message: `Fetching results for call ${callNum} of ${callArray.length}\n\n${callsPerSecond} per sec`, // :: ${currCall}`,
+                            currValue: callNum,
+                            endValue: callArray.length,
+                            startTime: startTime,
+                            currTime: currTime,
+                            results: results.length,
+                            success: successes,
+                            failure: errors.length,
+                            currentCall: currentCall,
+                        },
+                    ]);
+
+                    let res;
+                    promiseBatch.push(
+                        api.handleFetch(callURL, src, callVars, {
+                            abortSignal: abort,
+                            timeout: 8000,
+                        }),
+                    );
+
+                    if (
+                        promiseBatch.length >= batchSize ||
+                        callArray.length - i <= promiseBatch.length
+                    ) {
+                        // Process them
+
+                        try {
+                            res = await Promise.allSettled(promiseBatch)
+                                .then((data) => (res = data))
+                                .catch((error) =>
+                                    console.log("Allsettled error: ", error),
+                                );
+                        } catch (error) {
+                            errors.push(
+                                api.constructFetchError(
+                                    `${src}::${currentCall}`,
+                                    callURL,
+                                    callVars,
+                                    res,
+                                ),
+                            );
+                        }
+
+                        // const succeededValues = res
+                        //     .filter((o) => o.status === "fulfilled")
+                        //     .map((s) => s.value);
+                        //
+                        // const failedValues = res
+                        //     .filter((o) => o.status === "rejected")
+                        //     .map( ( f ) => f.reason );
+
+                        console.log(
+                            `${src} :: Called promise batch (${
+                                promiseBatch.length
+                            }): ${JSON.stringify(
+                                promiseBatch,
+                            )} with response RES = `,
+                            res,
+                        );
+
+                        promiseBatch = [];
+                        if (arrayIsValid(res)) {
+                            // Success, append it to our reports list.
+                            let data = [];
+                            res.forEach((result, index) => {
+                                if (result.status === "fulfilled") {
+                                    // console.log(
+                                    //     `Result value #${index} of res = `,
+                                    //     result.value,
+                                    //     " :: type = ",
+                                    //     typeof result.value,
+                                    //     ", isarray? = ",
+                                    //     Array.isArray(result.value),
+                                    //     ", has(val): ",
+                                    //     has(result.value),
+                                    // );
+                                    if (result.value) {
+                                        let val = result.value;
+                                        if (Array.isArray(val)) {
+                                            if (
+                                                val[0] !== undefined &&
+                                                val[0] !== null
+                                            ) {
+                                                data = [...data, ...val];
+                                            } else {
+                                            }
+                                        } else if (typeof val === "object") {
+                                            // Val is an object.
+                                            // Our custom errors will come through as fulfilled, so we have to filter them out.
+                                            if (has(val, "status")) {
+                                                if (val.status === 429) {
+                                                    retryCalls.push(call);
+                                                    console.log(
+                                                        `val had 429 error: `,
+                                                        val,
+                                                        ", retryCalls is now: ",
+                                                        retryCalls,
+                                                    );
+                                                }
+
+                                                errors.push(val);
+                                            } else {
+                                                // We've received a single object as our resulting data instead of our custom errors. This usually happens with the neighborhood information calls.
+                                                // data = [...data, val];
+                                                // data.push( ...val );
+                                                data.push(val);
+                                            }
+                                        }
+                                    }
+                                } else if (result.status === "rejected") {
+                                    errors.push(result);
+                                }
+                            });
+                            if (data.length > 0) {
+                                successes += data.length;
+                                let compiled = SpliceObjArray(
+                                    data,
+                                    call,
+                                    // {
+                                    //     // force_id: force,
+                                    //     // neighborhood: neighborhoodData.name,
+                                    // }
+                                );
+                                results = [...results, ...compiled];
+                            }
+
+                            // Handle errors
+                            console.log(
+                                "res = ",
+                                res,
+                                // ", succeededValues = ",
+                                // succeededValues,
+                                "Data = ",
+                                data,
+                                // "res as string = ",
+                                // JSON.stringify(res),
+                                // "compiled = ",
+                                // compiled,
+                                "results = ",
+                                results,
+                                ", errors = ",
+                                errors,
+                            );
+                        } else {
+                            // The returned response is undefined, so define a new error here.
+                            errors.push(
+                                api.constructFetchError(
+                                    `${src}::${currentCall}`,
+                                    callURL,
+                                    callVars,
+                                    res,
+                                ),
+                            );
+                        }
+                    }
+                    // lastCallURL = callURL;
+                    // lastCallVars = callVars;
+                } // End of loop //
+
+                // Retry calls that received 429 errors
+                if (retryCalls && !isRetry) {
+                    if (retryCalls.length > 0) {
+                        let retry = await batchFetchArray(
+                            retryCalls,
+                            src,
+                            splicekeys,
+                            true,
+                            batchSize,
+                        );
+                        if (retry) {
+                            if ("results" in retry) {
+                                console.log(
+                                    `batchFetchArray :: recieved retry results = `,
+                                    retry,
+                                    `, returning: `,
+                                    {
+                                        calldata: callArray,
+                                        results: [...results, ...retry.results],
+                                        errors: [...errors, ...retry.errors],
+                                    },
+                                );
+                                return {
+                                    calldata: callArray,
+                                    results: [...results, ...retry.results],
+                                    errors: [...errors, ...retry.errors],
+                                };
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Callarray provided was defined but empty.
+            }
+        } else {
+            // Callarray provided was undefined.
+        }
+        return {
+            calldata: callArray,
+            results: results,
+            errors: errors,
+        };
+    };
+
     // if (isLoading) return <Loader progressInfo={progressInfo} />;
     if (error) return `An error has occurred: ${error.message}`;
 
-    const toggleSidebar = () => {
-        if (showSidebar) {
-            setShowSidebar(false);
-        } else {
-            setShowSidebar(true);
+    const loadContent = (currentmenu) => {
+        switch (currentmenu) {
+            case "query":
+                return (
+                    <DashboardContent
+                        isFetching={isFetching}
+                        isLoading={isLoading}
+                        progressInfo={progressInfo}
+                        crimeReports={crimeReports}
+                        queryString={queryString}
+                        bottomRef={bottomRef}
+                        showContent={showContent}
+                        showTable={showTable}
+                        showMap={showMap}
+                        setShowSidePanel={setShowSidePanel}
+                        setSidePanelID={setSidePanelID}
+                        setSidePanelData={setSidePanelData}
+                        theme={theme}
+                        debug={debug}
+                        errorLog={errorLog}
+                        menu={menu}></DashboardContent>
+                );
+            case "map":
+                return <div className="dashboard-content">map</div>;
+            case "database":
+                return <div className="dashboard-content">database</div>;
+            case "options":
+                return <div className="dashboard-content">options</div>;
+            default:
+                break;
         }
     };
     return (
         <div className={`page-container theme-${theme}`}>
             {
                 <Sidebar
-                    className={`${showSidebar ? "" : "hidden"}`}
                     query={query}
                     setQuery={setQuery}
-                    categories={categories}
-                    forces={forces}
-                    dates={dates}
-                    forceNeighborhoods={forceNeighborhoods}
-                    category={category}
-                    force={force}
-                    forceNeighborhood={forceNeighborhood}
-                    forceNeighborhoodData={forceNeighborhoodData}
-                    date={date}
-                    setCategory={setCategory}
-                    setForce={setForce}
-                    setForceNeighborhood={setForceNeighborhood}
-                    setForceNeighborhoodData={setForceNeighborhoodData} // Grab the coordinates and other data of the selected neighbourhood.
-                    setDate={setDate}
-                    neighborhoodId={neighborhoodId}
-                    setNeighborhoodId={setNeighborhoodId}
-                    neighborhoodCoordinates={neighborhoodCoordinates}
-                    setNeighborhoodCoordinates={setNeighborhoodCoordinates}
-                    // Pass search functions
-                    handleSearch={handleSearch}
-                    handleSearchAtLocation={handleSearchAtLocation}
-                    handleSearchByLocation={handleSearchByLocation}
-                    handleSequentialSearch={handleSequentialSearch}
-                    handleSequentialSearchByLocation={
-                        handleSequentialSearchByLocation
-                    }
-                    handleSequentialSearchAllLocationsAllDates={
-                        handleSequentialSearchAllLocationsAllDates
-                    }
-                    categoryIsInvalid={categoryIsInvalid}
-                    forceIsInvalid={forceIsInvalid}
-                    setCategoryIsInvalid={setCategoryIsInvalid}
-                    setForceIsInvalid={setForceIsInvalid}
                     isFetching={isFetching}
                     showSidebar={showSidebar}
                     theme={theme}
                     setTheme={setTheme}
                     menu={menu}
                     setMenu={setMenu}
+                    abort={abort}
+                    setAbort={setAbort}
+                    // Arrays of options to pass into the query form on the query menu.
+                    categories={categories}
+                    forces={forces}
+                    dates={dates}
+                    forceNeighborhoods={forceNeighborhoods}
+                    // Arrays of selected options for the query form on the query menu.
+                    category={category}
+                    force={force}
+                    forceNeighborhood={forceNeighborhood}
+                    date={date}
+                    // State functions for the query form to use to set the new values when selected.
+                    setCategory={setCategory}
+                    setForce={setForce}
+                    setForceNeighborhood={setForceNeighborhood}
+                    setDate={setDate}
+                    // Search function
+                    handleSearch={handleSearch}
                 />
             }
             <div className="page-content">
                 <Header
                     showSidebar={showSidebar}
                     setShowSidebar={setShowSidebar}
-                    toggleSidebar={toggleSidebar}
+                    toggleSidebar={() => setShowSidebar(!showSidebar)}
                     showTitle={!showTable}
                     menu={menu}
                 />
-                {showContent && (
-                    <>
-                        <DashboardContent
-                            isFetching={isFetching}
-                            isLoading={isLoading}
-                            progressInfo={progressInfo}
-                            crimeReports={crimeReports}
-                            queryString={queryString}
-                            bottomRef={bottomRef}
-                            showContent={showContent}
-                            showTable={showTable}
-                            showMap={showMap}
-                            setShowSidePanel={setShowSidePanel}
-                            setSidePanelID={setSidePanelID}
-                            theme={theme}
-                            menu={menu}
-                            setSidePanelData={
-                                setSidePanelData
-                            }></DashboardContent>
-                        <SidePanel
-                            className={`${showSidePanel ? "" : "hidden"}`}
-                            isFetching={isFetching}
-                            show={showSidePanel}
-                            setShow={setShowSidePanel}
-                            panelData={sidePanelData}
-                            panelDataID={sidePanelID}></SidePanel>
-                    </>
+                {showContent && loadContent(menu)}
+                {showSidePanel && (
+                    <SidePanel
+                        className={`${showSidePanel ? "" : "hidden"}`}
+                        isFetching={isFetching}
+                        show={showSidePanel}
+                        setShow={setShowSidePanel}
+                        panelData={sidePanelData}
+                        panelDataID={sidePanelID}></SidePanel>
                 )}
             </div>
         </div>
