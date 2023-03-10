@@ -7,7 +7,7 @@ import Select from "./Select";
 import Checkbox from "./Checkbox";
 import Range from "./Range";
 
-function QueryForm(props) {
+function Form(props) {
     const {
         children,
         name,
@@ -169,6 +169,9 @@ function QueryForm(props) {
                                         disabled={isFetching ?? ""}
                                         required={field.required ?? ""}></Input>
                                 );
+                            } else if ( type === "inputlist" )
+                            {
+                                
                             }
 
                             // .map catch-all for invalid inputs.
@@ -192,4 +195,4 @@ function QueryForm(props) {
     );
 }
 
-export default QueryForm;
+export default Form;

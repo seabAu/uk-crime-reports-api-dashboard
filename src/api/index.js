@@ -9,6 +9,7 @@ import {
 const DEBUG = undefined;
 const API_BASE = "https://data.police.uk/api";
 const API_DELAY = 1000 / 15; // = 15; // 25; // Math.ceil(( 1 / 15 ) * 1000) + 50; // Add a little buffer
+const MAX_CONSECUTIVE_CALLS = 10;
 const fetchOptions = {
     method: "GET",
     redirect: "manual",

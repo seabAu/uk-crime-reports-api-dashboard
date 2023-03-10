@@ -17,6 +17,7 @@ function Select(props) {
         multiple,
         dropdown,
     } = props;
+    // console.log("Select :: props = ", props);
 
     const debugReadProps = () => {
         console.log("Form.Select :: {Props} = ", props);

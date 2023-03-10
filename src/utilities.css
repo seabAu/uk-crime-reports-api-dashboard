@@ -190,6 +190,25 @@ a:hover {
     padding: 2px 0;
     width: 100%;
 }
+.input-field.input-field-inline .input-field-label {
+    display: inline;
+    padding: 4px 4px;
+    margin: 0;
+    width: 100%;
+    width: auto;
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse;
+}
+.input-field.input-field-inline .input-field-label .input-field-label-text {
+    min-width: 1rem !important;
+    overflow-wrap: normal!important;
+    white-space: nowrap;
+    width: auto;
+}
+.input-field.input-field-inline .input-field-label .input-field-checkbox {
+    width: auto;
+}
 .button-form-submit {
     width: 100%;
     align-self: center;

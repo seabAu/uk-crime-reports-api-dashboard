@@ -13,7 +13,6 @@ import {
     getObjKeys,
     arrayIsValid,
     filterDataFast,
-    flattenObjArray,
 } from "../Utilities/ObjectUtils.js";
 import Select from "../Form/Select";
 import TableFoot from "./TableFoot";
@@ -49,7 +48,6 @@ function Table(props) {
     const [renderData, setRenderData] = useState(appendIndex(tableData));
     const [headers, setHeaders] = useState([]);
     const [tableID, setTableID] = useState(Math.floor(Math.random() * 1000000));
-    const [showFlattened, setShowFlattened] = useState(false);
 
     const getPageEntries = (data, page, numPerPage, filters = []) => {
         if (!data) {
@@ -106,18 +104,14 @@ function Table(props) {
     
     useEffect( () =>
     {
-        // Update if the data, filters, or any data-altering options are changed.
         if ( arrayIsValid( tableData, true ) )
         {
-            let temp = showFlattened
-                ? flattenObjArray(appendIndex(tableData))
-                : appendIndex(tableData);
-            
+            let temp = appendIndex(tableData);
             setHeaders(getObjKeys(temp[0]));
             // setRenderData(filterData(temp, filters));
             setRenderData(filterDataFast(temp, filters));
         }
-    }, [tableData, filters, showFlattened]);
+    }, [tableData, filters]);
     
     const changeFilters = (key, filter) => {
         // Set up to one filter per header key.
@@ -200,7 +194,7 @@ function Table(props) {
 
     return (
         <div className="table-container">
-            <div className="table-options-container">
+            <div className="flex-row">
                 <TableDownload
                     dataName={dataName}
                     tableData={tableData}
@@ -271,34 +265,10 @@ function Table(props) {
                                 }
                             }}></Select>
                     )}
-
-                    <div className="input-field input-field-inline">
-                        <label
-                            className="input-field-label"
-                            htmlFor={`table-checkbox-input-showflattened`}>
-                            <p className="input-field-label-text">
-                                Show Flattened
-                            </p>
-                            <input
-                                type="checkbox"
-                                className={`input-field-checkbox`}
-                                name={`table-checkbox-input-showflattened`}
-                                key={`table-checkbox-input-showflattened`}
-                                id={`table-checkbox-input-showflattened`}
-                                defaultValue={showFlattened}
-                                onChange={(event) => {
-                                    setShowFlattened(event.target.checked);
-                                }}
-                                disabled={isFetching}
-                            />
-                        </label>
-                    </div>
                 </div>
             </div>
             <div className="table table-fixed-head">
-                <table
-                    className="table table-fixed-head"
-                    sortable={isSortable ? "true" : ""}>
+                <table sortable={isSortable ? "true" : ""}>
                     <caption>{dataName}</caption>
                     {renderData &&
                         headers && ( // tableData && tableData[0] && (
@@ -329,19 +299,16 @@ function Table(props) {
                                 cellData,
                             ) => {}}></TableBody>
                     )}
-                    {
-                        // renderData && headers && (
-                        // <div className="tablefoot-scrollable">
-                        //     <TableFoot
-                        //         tableID={tableID}
-                        //         tableHeadings={headers}
-                        //         numEntries={renderData.length}
-                        //         entriesPerPage={parseInt(entriesPerPage)}
-                        //         pageNum={parseInt(pageNum)}
-                        //         changePage={changePage}></TableFoot>
-                        // </div>
-                        // )
-                    }
+                    {renderData && headers && (
+                        <TableFoot
+                            tableID={tableID}
+                            tableHeadings={headers}
+                            numEntries={renderData.length}
+                            entriesPerPage={parseInt(entriesPerPage)}
+                            pageNum={parseInt(pageNum)}
+                            changePage={changePage}
+                        ></TableFoot>
+                    )}
                 </table>
             </div>
             {renderData && renderData.length > 0 && (

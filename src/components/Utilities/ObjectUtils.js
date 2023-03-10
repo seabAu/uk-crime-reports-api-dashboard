@@ -157,11 +157,11 @@ export const arrayIsValid = (arr, checklength) => {
     return false;
 };
 
-export const has = (input, search) => {
+export const has = (input, search = '') => {
     if (input) {
         if (typeof input === "object") {
             // Input is an object.
-            if (!search) {
+            if (search === '') {
                 // If search is left blank, just return obj-is-valid check results.
                 return true;
             }
@@ -408,136 +408,136 @@ export const flatMapObjText = (obj) => {
 // DEEP NESTED OBJECT / ARRAY FILTERING & SORTING
 
 export const filterData = (data, filters) => {
-        // Data is an array of objects.
-        // Filters is an array of objects consisting only of single key value pairs.
-        // console.log(
-        //     "FilterData() :: BEFORE :: ",
-        //     "\ndata",
-        //     data,
-        //     "\ndata has ",
-        //     data.length,
-        //     "elements.",
-        // );
-        // console.log( "FilterData :: ", filters.length );
-        if (filters.length > 0) {
-            let filteredData = data;
-            // Filters in the format {key: key, value: filterString}.
-            filters.forEach((element) => {
-                if (element.key && element.value) {
-                    // Run for each filter.
-                    let filterKey = element.key;
-                    let filterValue = element.value.toLowerCase();
-                    filteredData = filteredData.filter((obj, index) => {
-                        // Filter for each object in the array.
-                        if (obj) {
-                            // Object is valid. Check if it contains the key of the filter we're currently filtering for.
-                            if (obj.hasOwnProperty(filterKey)) {
-                                // Object contains the key we're filtering for.
-                                if (obj[filterKey]) {
-                                    // Object has a valid value.
-                                    if (typeof obj[filterKey] === "object") {
-                                        // The value contained in this key is a nested object. Rather than run through each key value pair recursively, just convert to a string and see if it has the substring we're looking for.
-                                        // return JSON.stringify(obj[filterKey]).toLowerCase().includes(filterValue);
-                                        // return obj[ filterKey ].toString().toLowerCase().includes( filterValue );
-                                        return Object.values(obj[filterKey])
-                                            .toString()
+    // Data is an array of objects.
+    // Filters is an array of objects consisting only of single key value pairs.
+    // console.log(
+    //     "FilterData() :: BEFORE :: ",
+    //     "\ndata",
+    //     data,
+    //     "\ndata has ",
+    //     data.length,
+    //     "elements.",
+    // );
+    // console.log( "FilterData :: ", filters.length );
+    if (filters.length > 0) {
+        let filteredData = data;
+        // Filters in the format {key: key, value: filterString}.
+        filters.forEach((element) => {
+            if (element.key && element.value) {
+                // Run for each filter.
+                let filterKey = element.key;
+                let filterValue = element.value.toLowerCase();
+                filteredData = filteredData.filter((obj, index) => {
+                    // Filter for each object in the array.
+                    if (obj) {
+                        // Object is valid. Check if it contains the key of the filter we're currently filtering for.
+                        if (obj.hasOwnProperty(filterKey)) {
+                            // Object contains the key we're filtering for.
+                            if (obj[filterKey]) {
+                                // Object has a valid value.
+                                if (typeof obj[filterKey] === "object") {
+                                    // The value contained in this key is a nested object. Rather than run through each key value pair recursively, just convert to a string and see if it has the substring we're looking for.
+                                    // return JSON.stringify(obj[filterKey]).toLowerCase().includes(filterValue);
+                                    // return obj[ filterKey ].toString().toLowerCase().includes( filterValue );
+                                    return Object.values(obj[filterKey])
+                                        .toString()
+                                        .toLowerCase()
+                                        .includes(filterValue);
+                                } else if (Array.isArray(obj[filterKey])) {
+                                    // The value contained in this key is an array. Have to see if any of its elements contains the value we're looking for.
+                                    return obj[filterKey].some((item) => {
+                                        return item
                                             .toLowerCase()
                                             .includes(filterValue);
-                                    } else if (Array.isArray(obj[filterKey])) {
-                                        // The value contained in this key is an array. Have to see if any of its elements contains the value we're looking for.
-                                        return obj[filterKey].some((item) => {
-                                            return item
-                                                .toLowerCase()
-                                                .includes(filterValue);
-                                        });
-                                    } else {
-                                        // The value contained in this key is anything else; a scalar;
-                                        return obj[filterKey]
-                                            .toString()
-                                            .toLowerCase()
-                                            .includes(filterValue);
-                                    }
+                                    });
                                 } else {
-                                    // Object does not have a valid value.
-                                    // This could be something like undefined, null, '', or some other invalid value.
-                                    return true;
+                                    // The value contained in this key is anything else; a scalar;
+                                    return obj[filterKey]
+                                        .toString()
+                                        .toLowerCase()
+                                        .includes(filterValue);
                                 }
                             } else {
-                                // Object does not contain the key we're filtering for.
+                                // Object does not have a valid value.
+                                // This could be something like undefined, null, '', or some other invalid value.
                                 return true;
                             }
                         } else {
-                            // Object is invalid.
+                            // Object does not contain the key we're filtering for.
                             return true;
                         }
-                    });
-                }
-            });
-            // console.log(
-            //     "FilterData() :: AFTER :: ",
-            //     "\nfilteredData", filteredData,
-            //     "\nfilteredData has ", filterData.length, "elements."
-            // );
-            return filteredData;
-        } else {
-            // Return data as-is.
-            return data;
-        }
-    };
+                    } else {
+                        // Object is invalid.
+                        return true;
+                    }
+                });
+            }
+        });
+        // console.log(
+        //     "FilterData() :: AFTER :: ",
+        //     "\nfilteredData", filteredData,
+        //     "\nfilteredData has ", filterData.length, "elements."
+        // );
+        return filteredData;
+    } else {
+        // Return data as-is.
+        return data;
+    }
+};
 
 export const filterDataFast = (data, filters) => {
-        // Data is an array of objects.
-        // Filters is an array of objects consisting only of single key value pairs.
-        // console.log(
-        //     "FilterData() :: BEFORE :: ",
-        //     "\ndata",
-        //     data,
-        //     "\ndata has ",
-        //     data.length,
-        //     "elements.",
-        // );
-        // console.log( "FilterData :: ", filters.length );
-        if (filters.length > 0) {
-            let filteredData = data;
-            // Filters in the format {key: key, value: filterString}.
-            filters.forEach((element) => {
-                if (element.key && element.value) {
-                    // Run for each filter.
-                    let filterKey = element.key;
-                    let filterValue = element.value.toLowerCase();
-                    filteredData = filteredData.filter((obj, index) => {
-                        // Filter for each object in the array.
-                        if (obj) {
-                            // Object is valid. Check if it contains the key of the filter we're currently filtering for.
-                            // To do this quick, just turn the whole object into a string and see if it contains the filter value as a substring.
-                            // Lol.
-                            // console.log( "filtering '''''fast''''' :: ", filterKey, filterValue, obj, JSON.stringify(obj) );
-                            if (obj.hasOwnProperty(filterKey)) {
-                                return JSON.stringify(obj[filterKey])
-                                    .toLowerCase()
-                                    .includes(filterValue);
-                            } else
-                            {
-                                return false;
-                            }
-                        } else {
-                            // Object is invalid.
-                            return true;
+    // Data is an array of objects.
+    // Filters is an array of objects consisting only of single key value pairs.
+    // console.log(
+    //     "FilterData() :: BEFORE :: ",
+    //     "\ndata",
+    //     data,
+    //     "\ndata has ",
+    //     data.length,
+    //     "elements.",
+    // );
+    // console.log( "FilterData :: ", filters.length );
+    if (filters.length > 0) {
+        let filteredData = data;
+        // Filters in the format {key: key, value: filterString}.
+        filters.forEach((element) => {
+            if (element.key && element.value) {
+                // Run for each filter.
+                let filterKey = element.key;
+                let filterValue = element.value.toLowerCase();
+                filteredData = filteredData.filter((obj, index) => {
+                    // Filter for each object in the array.
+                    if (obj) {
+                        // Object is valid. Check if it contains the key of the filter we're currently filtering for.
+                        // To do this quick, just turn the whole object into a string and see if it contains the filter value as a substring.
+                        // Lol.
+                        // console.log( "filtering '''''fast''''' :: ", filterKey, filterValue, obj, JSON.stringify(obj) );
+                        if (obj.hasOwnProperty(filterKey)) {
+                            return JSON.stringify(obj[filterKey])
+                                .toLowerCase()
+                                .includes(filterValue);
+                        } else
+                        {
+                            return false;
                         }
-                    });
-                }
-            });
-            // console.log(
-            //     "FilterData() :: AFTER :: ",
-            //     "\nfilteredData", filteredData,
-            //     "\nfilteredData has ", filterData.length, "elements."
-            // );
-            return filteredData;
-        } else {
-            // Return data as-is.
-            return data;
-        }
-    };
+                    } else {
+                        // Object is invalid.
+                        return true;
+                    }
+                });
+            }
+        });
+        // console.log(
+        //     "FilterData() :: AFTER :: ",
+        //     "\nfilteredData", filteredData,
+        //     "\nfilteredData has ", filterData.length, "elements."
+        // );
+        return filteredData;
+    } else {
+        // Return data as-is.
+        return data;
+    }
+};
 
 /*
     function filterObject ( obj, callback )

@@ -11,16 +11,16 @@ import {
 } from "../Utilities/ObjectUtils";
 import { obj2ListText } from "../Utilities/DOMUtilities";
 
-const MAPBOX_API_KEY_SK =
-    "sk.eyJ1Ijoic2JzaWJ5bGxpbmUiLCJhIjoiY2xlamUzdjZzMDIwMzQxbG00eHpjaDk0MyJ9.0BDFwYgJp3IxMgYB6Bc2KQ";
-const MAPBOX_API_KEY_PK =
-    "pk.eyJ1Ijoic2JzaWJ5bGxpbmUiLCJhIjoiY2xlajgxdWplMDh1NzN1cDd0cDl6dXk1aiJ9.buwlClZxBHJqe-0OOXdOVQ";
+import { MAPBOX_API_KEY_PK } from "../../global/env";
 mapboxgl.accessToken = MAPBOX_API_KEY_PK;
-// mapboxgl.accessToken = "pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA";
 
 const RenderMap = ({
     data,
     renderData,
+    viewport,
+    setViewport,
+    initialViewport,
+    setInitialViewport,
     latitude,
     longitude,
     zoom,
@@ -31,6 +31,7 @@ const RenderMap = ({
     theme,
 } ) =>
 {
+    console.log( "RenderMap :: Render" );
     const mapRef = useRef(null);
     const mapContainerRef = useRef( null );
 
@@ -105,11 +106,11 @@ const RenderMap = ({
 
     const tooltipRef = useRef(new mapboxgl.Popup({ offset: 15 }));
     const [dataPoints, setDataPoints] = useState(data2geojson(data));
-    const [viewport, setViewport] = useState({
-        longitude: latitude,
-        latitude: longitude,
-        zoom: zoom,
-    });
+    // const [viewport, setViewport] = useState({
+    //     longitude: latitude,
+    //     latitude: longitude,
+    //     zoom: zoom,
+    // });
     const [selectedFocusIndex, setSelectedFocusIndex] = useState(0);
 
     const getCoordinateFromData = (input) => {
@@ -170,6 +171,16 @@ const RenderMap = ({
     //   });
     // }, []);
 
+    useEffect( () =>
+    {
+                console.log(
+                    "RenderMap.js :: viewport changed :: viewport = ",
+                    viewport,
+                    viewport.current,
+                    ", initialViewport = ",
+                    initialViewport,
+                );
+    }, [viewport] );
     useEffect(() => {
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
@@ -180,8 +191,12 @@ const RenderMap = ({
                     ? "light-v10"
                     : "streets-v11"
             }`,
-            center: [longitude, latitude],
-            zoom: zoom ?? 9,
+            // center: [longitude, latitude],
+            // zoom: zoom ?? 9,
+            // center: [viewport.current.lng ?? 51.2296, viewport.current.lat ?? -2.31653],
+            // zoom: viewport.current.zoom ?? 9,
+            center: [initialViewport.lng ?? 51.2296, initialViewport.lat ?? -2.31653],
+            zoom: initialViewport.zoom ?? 9,
         });
 
         // Add navigation control (the +/- zoom buttons)
@@ -241,11 +256,27 @@ const RenderMap = ({
                         if (coordinates) {
                             sidebarButtons[i].onclick = function (i) {
                                 setSelectedFocusIndex(i);
-                                setViewport({
-                                    longitude: coordinates.longitude,
-                                    latitude: coordinates.latitude,
-                                    zoom: 5.0,
+                                viewport.current = {
+                                    // ...viewport,
+                                    lat: coordinates.latitude,
+                                    lng: coordinates.longitude,
+                                    zoom: viewport.current.zoom,
+                                };
+                                map.easeTo({
+                                    center: coordinates,
+                                    zoom: viewport.current.zoom,
                                 });
+                                setInitialViewport({
+                                    // ...viewport,
+                                    lat: coordinates.latitude,
+                                    lng: coordinates.longitude,
+                                    zoom: viewport.current.zoom,
+                                });
+                                // setViewport({
+                                //     longitude: coordinates.longitude,
+                                //     latitude: coordinates.latitude,
+                                //     zoom: 5.0,
+                                // });
                             };
                         }
                     }
@@ -470,9 +501,35 @@ const RenderMap = ({
         }); // end of map.on("load").
 
         map.on("moveend", () => {
-            setLongitude(map.getCenter().lng.toFixed(4));
-            setLatitude(map.getCenter().lat.toFixed(4));
-            setZoom(map.getZoom().toFixed(2));
+            // setLatitude(map.getCenter().lat.toFixed(4));
+            // setLongitude(map.getCenter().lng.toFixed(4));
+            // setZoom(map.getZoom().toFixed(2));
+            // setViewport({
+            //     // ...viewport,
+            //     lng: map.getCenter().lng.toFixed(4),
+            //     lat: map.getCenter().lat.toFixed(4),
+            //     zoom: map.getZoom().toFixed(2),
+            // });
+            viewport.current = {
+                // ...viewport,
+                lat: map.getCenter().lat.toFixed(4),
+                lng: map.getCenter().lng.toFixed(4),
+                zoom: map.getZoom().toFixed(2),
+            };
+            setInitialViewport({
+                // lat: viewport.current.lat,
+                // lng: viewport.current.lng,
+                // zoom: viewport.current.zoom,
+                lat: map.getCenter().lat.toFixed(4),
+                lng: map.getCenter().lng.toFixed(4),
+                zoom: map.getZoom().toFixed(2),
+            });
+            console.log(
+                "Rendermap.js :: viewport.current is now = ",
+                viewport.current,
+                ", initialViewport = ",
+                initialViewport,
+            );
             // console.log(
             //     "MAPPROVIDER.JS :: During execution :: onMOVE :: map = ",
             //     map,

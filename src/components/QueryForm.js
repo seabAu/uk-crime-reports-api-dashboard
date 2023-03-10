@@ -1,83 +1,17 @@
-import React, { Children, Component, useState, useEffect, useRef } from "react";
-import PropTypes from "prop-types";
-import { FaDatabase, FaChartBar, FaMap, FaCog } from "react-icons/fa";
-
-const Sidebar = ( props ) =>
-{
-    const {
-        children,
-        menu,
-        setMenu,
-        isFetching,
-        showSidebar,
-    } = props;
-    
-    // const childContents = Children.toArray(children);
-    // console.log("Sidebar :: props = ", props, childContents);
-    return (
-        <div className={`page-sidebar ${showSidebar ? "" : "hidden"}`}>
-            <div className="sidebar-header">
-                <div className="nav-button-group">
-                    {[
-                        { name: "query", icon: <FaChartBar /> },
-                        { name: "database", icon: <FaDatabase /> },
-                        { name: "map", icon: <FaMap /> },
-                        { name: "options", icon: <FaCog /> },
-                    ].map((button, index) => {
-                        return (
-                            <button
-                                key={`nav-menu-button-${button.name}`}
-                                id={`nav-menu-button-${button.name}`}
-                                className={`header-nav-button ${
-                                    menu === button.name ? "active" : ""
-                                }`}
-                                onClick={(event) => {
-                                    setMenu(button.name);
-                                }}>
-                                {button.icon}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-            <div className="sidebar-body">
-                { props.showSidebar && props.children && (
-                    <>
-                    {props.children}
-                    </>
-                )}
-            </div>
-            <div className="sidebar-footer"></div>
-        </div>
-    );
-};
-
-Sidebar.propTypes = {
-    children: PropTypes.object.isRequired,
-    menu: PropTypes.string.isRequired,
-    isFetching: PropTypes.bool.isRequired,
-    // categoryIsInvalid: PropTypes.bool.isRequired,
-    // forceIsInvalid: PropTypes.bool.isRequired,
-    // setCategoryIsInvalid: PropTypes.func.isRequired,
-    // setForceIsInvalid: PropTypes.func.isRequired,
-};
-
-export default Sidebar;
-
-
-/*
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import DebugFields from "./Form/DebugFields";
 import Select from "./Form/Select";
 import Form from "./Form/Form";
-import { FaDatabase, FaChartBar, FaMap, FaCog } from "react-icons/fa";
-import { arrayIsValid, deepGetKey, deepSearch, has } from "./Utilities/ObjectUtils";
-import { apiNeighborhoodInformation } from "../api";
+import {
+    arrayIsValid,
+    deepGetKey,
+    deepSearch,
+    has,
+} from "./Utilities/ObjectUtils";
 import { printDebug } from "./Utilities/Utilities";
-const API_BASE = "https://data.police.uk/api"; // TODO :: Put this and the queryconfig in its own file. 
+const API_BASE = "https://data.police.uk/api"; // TODO :: Put this and the queryconfig in its own file.
 
-const Sidebar = ({
+const QueryForm = ({
     query,
     setQuery,
     isFetching,
@@ -165,6 +99,7 @@ const Sidebar = ({
     let queryConfig = [
         {
             id: "crimes-no-location",
+            api: "crimes-no-location",
             label: "Get Crime Data (No Location)",
             // apiCall: "getCrimeReports(category, force, date)",
             apiValues: {
@@ -187,8 +122,8 @@ const Sidebar = ({
                                     force: queryobj.apiValues.force,
                                     date: month,
                                 },
-                                src: `${this.id}`,
-                                url: `${API_BASE}/${queryobj.id}?category=${queryobj.apiValues.category}&force=${queryobj.apiValues.force}&date=${month}`,
+                                src: `${queryobj.api}`,
+                                url: `${API_BASE}/${queryobj.api}?category=${queryobj.apiValues.category}&force=${queryobj.apiValues.force}&date=${month}`,
                             });
                         });
                     }
@@ -271,6 +206,7 @@ const Sidebar = ({
         },
         {
             id: "crimes-at-location", // id: "crimes-all-locations",
+            api: "crimes-at-location", // id: "crimes-all-locations",
             label: "Get Crime Data (By Location)", // label: "Get Crime Data For Jurisdiction (All Locations)",
             apiValues: {
                 force: force,
@@ -317,9 +253,9 @@ const Sidebar = ({
                                     neighborhood_info:
                                         neighborhood.neighborhood_info ?? "",
                                 },
-                                src: `${queryobj.id}`,
+                                src: `${queryobj.api}`,
                                 // url: `${API_BASE}/${queryobj.id}?location_id=${neighborhood.id}&date=${month}`,
-                                url: `${API_BASE}/${queryobj.id}?date=${month}&lat=${lat}&lng=${lng}`,
+                                url: `${API_BASE}/${queryobj.api}?date=${month}&lat=${lat}&lng=${lng}`,
                             });
                         });
                     });
@@ -406,6 +342,7 @@ const Sidebar = ({
         },
         {
             id: "stops-no-location",
+            api: "stops-no-location",
             label: "Get Stops Data (No Location)",
             apiValues: {
                 force: force,
@@ -420,14 +357,14 @@ const Sidebar = ({
                     datesArray.forEach((month) => {
                         callsArray.push({
                             vars: {
-                                force: force,
+                                force: queryobj.apiValues.force,
                                 date: month,
                             },
-                            src: `stops-no-location`,
-                            url: `${API_BASE}/${this.id}?force=${force}&date=${month}`,
+                            src: `${queryobj.api}`,
+                            url: `${API_BASE}/${queryobj.api}?force=${queryobj.apiValues.force}&date=${month}`,
                         });
                         console.log(
-                            `Queryconfig :: ${this.id} :: ${this.label} :: callsArray = `,
+                            `Queryconfig :: ${queryobj.api} :: ${queryobj.label} :: callsArray = `,
                             callsArray,
                             `, this.apiValues.force = `,
                             force,
@@ -485,6 +422,7 @@ const Sidebar = ({
         },
         {
             id: "stops-at-location",
+            api: "stops-at-location",
             label: "Get Stops Data (At Location)",
             apiValues: {
                 location_id: forceNeighborhoods,
@@ -509,8 +447,8 @@ const Sidebar = ({
                                         location_id: neighborhood.id,
                                         date: month,
                                     },
-                                    src: `${queryobj.id}`,
-                                    url: `${API_BASE}/${queryobj.id}?location_id=${neighborhood.id}&date=${month}`,
+                                    src: `${queryobj.api}`,
+                                    url: `${API_BASE}/${queryobj.api}?location_id=${neighborhood.id}&date=${month}`,
                                 });
                             });
                         }
@@ -605,165 +543,91 @@ const Sidebar = ({
     ];
 
     return (
-        <div className={`page-sidebar ${showSidebar ? "" : "hidden"}`}>
-            <div className="sidebar-header">
-                <div className="nav-button-group">
-                    {[
-                        { name: "query", icon: <FaChartBar /> },
-                        { name: "database", icon: <FaDatabase /> },
-                        { name: "map", icon: <FaMap /> },
-                        { name: "options", icon: <FaCog /> },
-                    ].map((button, index) => {
-                        return (
-                            <button
-                                key={`nav-menu-button-${button.name}`}
-                                id={`nav-menu-button-${button.name}`}
-                                className={`header-nav-button ${
-                                    menu === button.name ? "active" : ""
-                                }`}
-                                onClick={(event) => {
-                                    setMenu(button.name);
-                                }}>
-                                {button.icon}
-                            </button>
-                        );
-                    })}
-                </div>
+        <div className="query-form-container">
+            <div className="query-form" key="query-form-query">
+                <form className="form-container"  key="query-form-query-form-container">
+                    <Select
+                        height={50}
+                        width={100}
+                        label="Select a query"
+                        id={`querySelect`}
+                        name={`querySelect`}
+                        value={query.id ?? ""}
+                        unsetOption={`Select Query`}
+                        optionsConfig={queryConfig.map((queryInfo, index) => {
+                            return {
+                                key: `${index}`,
+                                value: `${queryInfo.id}`,
+                                label: `${queryInfo.label}`,
+                            };
+                        })}
+                        disabled={isFetching}
+                        onChange={
+                            (selected) => {
+                                console.log(
+                                    "Query selected: ",
+                                    selected,
+                                    queryConfig.filter(
+                                        (value) => value.id === selected,
+                                    )[0],
+                                );
+                                setQuery(
+                                    queryConfig.filter(
+                                        (value) => value.id === selected,
+                                    )[0],
+                                );
+                            }
+                            // setQuery
+                        }></Select>
+                </form>
             </div>
-            <div className="sidebar-body">
-                {menu === "query" && (
-                    <div className="query-form-container">
-                        <div className="query-form">
-                            <form className="form-container">
-                                <Select
-                                    height={50}
-                                    width={100}
-                                    label="Select a query"
-                                    id={`querySelect`}
-                                    name={`querySelect`}
-                                    value={query.id}
-                                    unsetOption={`Select Query`}
-                                    optionsConfig={queryConfig.map(
-                                        (queryInfo, index) => {
-                                            return {
-                                                key: `${index}`,
-                                                value: `${queryInfo.id}`,
-                                                label: `${queryInfo.label}`,
-                                            };
-                                        },
-                                    )}
-                                    disabled={isFetching}
-                                    onChange={
-                                        (selected) => {
-                                            console.log(
-                                                "Query selected: ",
-                                                selected,
-                                                queryConfig.filter(
-                                                    (value) =>
-                                                        value.id === selected,
-                                                )[0],
-                                            );
-                                            setQuery(
-                                                queryConfig.filter(
-                                                    (value) =>
-                                                        value.id === selected,
-                                                )[0],
-                                            );
-                                        }
-                                        // setQuery
-                                    }></Select>
-                            </form>
-                        </div>
-                        <hr className="hr-section-border" />
-                        <div className="query-form">
-                            {query && queryConfig && (
-                                <Form
-                                    name={`QueryForm`}
-                                    formID={`QueryForm`}
-                                    onSubmit={
-                                        queryConfig.filter(
-                                            (value) => value.id === query.id,
-                                        )[0].form.formOnSubmit
-                                    }
-                                    // onChange={}
-                                    model={
-                                        queryConfig.filter(
-                                            (value) => value.id === query.id,
-                                        )[0].form
-                                    }
-                                    disabled={isFetching}
-                                    // isFetching={isFetching}
-                                ></Form>
-                            )}
-                            {query && queryConfig && isFetching && (
-                                <button
-                                    key={`abort-query-button`}
-                                    id={`abort-query-button`}
-                                    className={`button header-nav-button ${
-                                        abort === true ? "active" : ""
-                                    }`}
-                                    onClick={(event) => {
-                                        if (abort === true) {
-                                            setAbort(false);
-                                        } else if (abort === false) {
-                                            setAbort(true);
-                                        }
-                                    }}>
-                                    Abort Query
-                                </button>
-                            )}
-                        </div>
-                    </div>
+            <hr className="hr-section-border" />
+            <div className="query-form" key="query-form-fetch">
+                {query && queryConfig && (
+                    <Form
+                        key="query-form-fetch-form-container"
+                        name={`QueryForm`}
+                        formID={`QueryForm`}
+                        onSubmit={
+                            queryConfig.filter(
+                                (value) => value.id === query.id,
+                            )[0].form.formOnSubmit
+                        }
+                        // onChange={}
+                        model={
+                            queryConfig.filter(
+                                (value) => value.id === query.id,
+                            )[0].form
+                        }
+                        disabled={isFetching}
+                        // isFetching={isFetching}
+                    ></Form>
                 )}
-                {menu === "map" && <button className="button">Load Map</button>}
-                {menu === "database" && (
-                    <button className="button">Explore Local Database</button>
-                )}
-                {menu === "options" && (
-                    <div className="query-form">
-                        <div className="input-field">
-                            <label
-                                className="input-field-label"
-                                htmlFor="theme-buttons">
-                                <p>Select a theme: </p>
-                                <div className="theme-buttons-container button-group">
-                                    {["default", "light", "dark", "cool"].map(
-                                        (themeName, index) => {
-                                            return (
-                                                <button
-                                                    className={`button theme-button ${
-                                                        theme === themeName
-                                                            ? "theme-button-active"
-                                                            : ""
-                                                    }`}
-                                                    key={`theme-button-${themeName}`}
-                                                    id={`theme-button-${themeName}`}
-                                                    onClick={(event) => {
-                                                        setTheme(
-                                                            `${themeName}`,
-                                                        );
-                                                        localStorage.setItem(
-                                                            "uk-crime-dashboard-theme",
-                                                            themeName,
-                                                        );
-                                                    }}>
-                                                    {themeName.toUpperCase()}
-                                                </button>
-                                            );
-                                        },
-                                    )}
-                                </div>
-                            </label>
-                        </div>
-                    </div>
+                {query && queryConfig && isFetching && (
+                    <button
+                        key={`abort-query-button`}
+                        id={`abort-query-button`}
+                        className={`button header-nav-button ${
+                            abort === true ? "active" : ""
+                        }`}
+                        onClick={(event) => {
+                            if (abort === true) {
+                                setAbort(false);
+                            } else if (abort === false) {
+                                setAbort(true);
+                            }
+                        }}>
+                        Abort Query
+                    </button>
                 )}
             </div>
-            <div className="sidebar-footer"></div>
         </div>
     );
 };
 
-Sidebar.propTypes = {
+QueryForm.propTypes = {
+    isFetching: PropTypes.bool.isRequired,
+    handleSearch: PropTypes.func.isRequired,
     categories: PropTypes.array.isRequired,
     forces: PropTypes.array.isRequired,
     category: PropTypes.string.isRequired,
@@ -772,14 +636,10 @@ Sidebar.propTypes = {
     setCategory: PropTypes.func.isRequired,
     setForce: PropTypes.func.isRequired,
     setDate: PropTypes.func.isRequired,
-    handleSearch: PropTypes.func.isRequired,
     // categoryIsInvalid: PropTypes.bool.isRequired,
     // forceIsInvalid: PropTypes.bool.isRequired,
     // setCategoryIsInvalid: PropTypes.func.isRequired,
     // setForceIsInvalid: PropTypes.func.isRequired,
-    isFetching: PropTypes.bool.isRequired,
 };
 
-export default Sidebar;
-
-*/
+export default QueryForm;

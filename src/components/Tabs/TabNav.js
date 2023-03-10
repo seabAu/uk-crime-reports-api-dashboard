@@ -27,7 +27,7 @@ class TabNav extends Component {
                 } ${rounded ? "tab-nav-rounded" : ""}`}
                 onClick={onClick}
                 id={id === "" ? "" : id}>
-                <div className="tab-nav-item-label">{label}</div>
+                <div className="tab-nav-item-label">{label ? label : '-'}</div>
             </div>
         );
     }

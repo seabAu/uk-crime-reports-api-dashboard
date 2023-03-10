@@ -28,9 +28,13 @@ export function length(numA, numB) {
 export function isDefined(value) {
     return value !== undefined && value !== null;
 }
-export function isObject(value) {
-    return value !== null && typeof value === "object";
+export const isObject = (value) => {
+    return value !== null && value !== undefined && typeof value === "object";
 }
+export const isArray = (value) => {
+    return value !== null && Array.isArray(value) && typeof value !== "object";
+}
+
 
 export function isNumber(value) {
     return typeof value === "number";
@@ -91,4 +95,92 @@ export function printDebug ( src, vars = [] ) {
         console.log( "Printdebug :: given nothing to print." );
     }
 }
-const varToString = varObj => Object.keys( varObj )[ 0 ];
+export const varToString = varObj => Object.keys( varObj )[ 0 ];
+
+export const generateDateOptions = (startYear = 2017, startMonth = 8) => {
+    const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ];
+
+    const start = new Date(startYear, startMonth);
+    const now = new Date();
+    // const now = new Date("2020, 8");
+
+    var numMonths =
+        now.getMonth() -
+        start.getMonth() +
+        (now.getYear() - start.getYear()) * 12;
+    // var numMonths = differenceInMonths( now, start );
+    // var numYears = Math.floor(numMonths / 12);
+    const dates = [];
+    for (let y = 0; numMonths >= 0; y++) {
+        let year = startYear + y;
+        // For each year between now and the start date, ascending.
+        for (
+            let m = year === startYear ? startMonth : 1;
+            m <= 12 && numMonths >= 0;
+            m++
+        ) {
+            // For each month in the year.
+            let month = months[m - 1];
+            dates.unshift({
+                key: `${year}-${m}`,
+                value: `${month} ${year}`,
+            });
+            numMonths--;
+        }
+    }
+
+    // dates.unshift({
+    //     key: "all_dates",
+    //     value: "All Dates",
+    // });
+    // dates.splice(0, 3);
+    return dates;
+};
+
+export const formatObjArray = ( array, split = '_', join = ' ' ) =>
+{
+    if ( arrayIsValid( array, true ) )
+    {
+        
+        return array.map( ( element, index ) =>
+        {
+            if ( isObject( element ) )
+            {
+                // Element is an object.
+                Object.keys( element ).forEach( ( key ) =>
+                {
+                    element[ key ] = element[ key ]
+                        .split( split )
+                        .join( join );
+                } );
+                return element;
+            }
+            else if ( isArray( element ) )
+            {
+                // Element is an array.
+                return element.map( ( val ) =>
+                {
+                    return val.split( split ).join( join );
+                } );
+            }
+            else
+            {
+                // Element is a scalar value.
+                return element.split(split).join(join);
+            }
+        });
+    }
+};

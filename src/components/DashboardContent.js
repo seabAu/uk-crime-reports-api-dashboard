@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Heading, Text, Pane, Spinner, Dialog } from "evergreen-ui";
 import { copyToClipboard } from "copy-lite";
-import ObjMap from "./Utilities/ObjMap";
 import Table from "./Table/Table";
 import Loader from "./Loader";
 import Tabs from "./Tabs/Tabs";
-import MapContent from "./Map/MapContent";
+import MapContainer from "./Map/MapContainer";
+import ObjMap from "./Utilities/ObjMap";
 import { arrayIsValid } from "./Utilities/ObjectUtils";
 
 const DashboardContent = ({
@@ -51,8 +51,7 @@ const DashboardContent = ({
                     roundedNav={true}>
                     <div className="" label="Datatable View">
                         {!isFetching &&
-                            renderReportsList.length === 0 &&
-                            renderReportsList[0] === undefined && (
+                            !arrayIsValid(crimeReports, true) && (
                                 <Table
                                     isVisible={showTable}
                                     isFetching={isFetching}
@@ -67,7 +66,7 @@ const DashboardContent = ({
                             )}
 
                         {!isFetching &&
-                            arrayIsValid(renderReportsList, true) &&
+                            arrayIsValid(crimeReports, true) &&
                             showTable && (
                                 <Table
                                     // isVisible={showTable}
@@ -75,19 +74,19 @@ const DashboardContent = ({
                                     isFilterable={true}
                                     isSortable={true}
                                     dataName={queryString}
-                                    tableData={renderReportsList}
+                                    tableData={crimeReports}
                                     setShowSidePanel={setShowSidePanel}
                                     setSidePanelID={setSidePanelID}></Table>
                             )}
                     </div>
                     {showMap &&
                         !isFetching &&
-                        arrayIsValid(renderReportsList, true) && (
+                        arrayIsValid(crimeReports, true) && (
                             <div className="" label="Map View">
-                                <MapContent
+                                <MapContainer
                                     isFetching={isFetching}
-                                    data={renderReportsList}
-                                    theme={theme}></MapContent>
+                                    data={crimeReports}
+                                    theme={theme}></MapContainer>
                             </div>
                         )}
                     {debug && !isFetching && arrayIsValid(errorLog, true) && (

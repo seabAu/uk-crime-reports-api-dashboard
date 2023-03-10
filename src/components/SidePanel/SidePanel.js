@@ -7,8 +7,16 @@ import { flatMapObjText, obj2List } from "../Utilities/ObjectUtils";
 import Table from "../Table/Table";
 import { FiX } from "react-icons/fi";
 import { objArray2List } from "../Utilities/DOMUtilities";
-function SidePanel({ show, isFetching, setShow, panelDataID, panelData }) {
+function SidePanel(props) {
 
+    const {
+        children,
+        isFetching,
+        label,
+        // show,
+        // setShow,
+    } = props;
+    console.log( "Sidepanel :: props = ", props );
     // console.log(
     //     "SidePanel :: ",
     //     show,
@@ -17,27 +25,29 @@ function SidePanel({ show, isFetching, setShow, panelDataID, panelData }) {
     //     panelDataID,
     //     panelData,
     // );
+    const [show, setShow] = useState(true);
     return (
         <div className={`side-panel-container ${show ? "" : "hidden"}`}>
             <div className="side-panel">
                 <div className="side-panel-header">
-                    <div className="button-row">
+                    <div className="side-panel-header-buttons">
                         <button
                             className="close-button side-panel-close-button"
                             onClick={() => {
-                                setShow( false );
-                                
+                                setShow(false);
                             }}>
                             <FiX />
                         </button>
                     </div>
+                    <div className="side-panel-label">{label ? label : ""}</div>
                 </div>
                 <div className="side-panel-body">
-                    <div className="side-panel-label">{`Showing detailed data for crime id = ${panelDataID}`}</div>
-                    {show &&
-                        panelData &&
-                        // flatMapObjText(panelData)
-                        objArray2List(panelData)}
+                    <div className="side-panel-content-title">
+                        {label ? label : ""}
+                    </div>
+                    <div className="side-panel-content">
+                        {show && !isFetching && children && children}
+                    </div>
                 </div>
                 <div className="side-panel-footer"></div>
             </div>
