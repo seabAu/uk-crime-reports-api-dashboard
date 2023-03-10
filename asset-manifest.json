@@ -1,13 +1,14 @@
 {
   "files": {
-    "main.css": "/uk-crime-reports-api-dashboard/static/css/main.e104f57b.css",
-    "main.js": "/uk-crime-reports-api-dashboard/static/js/main.4fd7efc4.js",
+    "main.css": "/uk-crime-reports-api-dashboard/static/css/main.5089ab7a.css",
+    "main.js": "/uk-crime-reports-api-dashboard/static/js/main.6964e80b.js",
+    "static/js/mapbox-gl-csp-worker.49666bf8.worker.js": "/uk-crime-reports-api-dashboard/static/js/mapbox-gl-csp-worker.49666bf8.worker.js",
     "index.html": "/uk-crime-reports-api-dashboard/index.html",
-    "main.e104f57b.css.map": "/uk-crime-reports-api-dashboard/static/css/main.e104f57b.css.map",
-    "main.4fd7efc4.js.map": "/uk-crime-reports-api-dashboard/static/js/main.4fd7efc4.js.map"
+    "main.5089ab7a.css.map": "/uk-crime-reports-api-dashboard/static/css/main.5089ab7a.css.map",
+    "main.6964e80b.js.map": "/uk-crime-reports-api-dashboard/static/js/main.6964e80b.js.map"
   },
   "entrypoints": [
-    "static/css/main.e104f57b.css",
-    "static/js/main.4fd7efc4.js"
+    "static/css/main.5089ab7a.css",
+    "static/js/main.6964e80b.js"
   ]
 }
