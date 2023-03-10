@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Heading, Text, Pane, Spinner, Dialog } from "evergreen-ui";
+// import { Heading, Text, Pane, Spinner, Dialog } from "evergreen-ui";
 import { copyToClipboard } from "copy-lite";
 import Table from "./Table/Table";
 import Loader from "./Loader";
