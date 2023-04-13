@@ -1,7 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { FiMenu } from "react-icons/fi";
+import * as util from '../../utilities';
+import { FiMenu } from 'react-icons/fi';
 import RenderMap from "./RenderMap";
 
 const MapContainer = ({ isFetching, theme, data }) => {
@@ -28,27 +29,37 @@ const MapContainer = ({ isFetching, theme, data }) => {
     const [showSidebar, setShowSidebar] = useState(true);
     const [ renderData, setRenderData ] = useState( [] );
 
-    const getCoordinateFromData = ( input ) =>
-    {
-        let locObj;
-        if (input) {
-            if ("location" in input) {
-                // Instance of reports returned by the get-reports-at-location API call.
-                locObj = input.location;
-            } else if ("centre" in input) {
-                // Instance of neighborhood data
-                locObj = input.centre;
-            }
+    // const getCoordinateFromData = ( input ) =>
+    // {
+    //     let locObj;
+    //     if (input) {
+    //         if ("location" in input) {
+    //             // Instance of reports returned by the get-reports-at-location API call.
+    //             locObj = input.location;
+    //         } else if ("centre" in input) {
+    //             // Instance of neighborhood data
+    //             locObj = input.centre;
+    //         }
+    //         
+    //         if ( locObj )
+    //         {
+    //             if ( "latitude" in locObj && "longitude" in locObj )
+    //             {
+    //                 return [ locObj.latitude, locObj.longitude ];
+    //             }
+    //         }
+    //     }
+    // }
 
-            if ( locObj )
-            {
-                if ( "latitude" in locObj && "longitude" in locObj )
-                {
-                    return [ locObj.latitude, locObj.longitude ];
-                }
-            }
+    const getCoordinateFromData = input => {
+        let lat = util.ao.deepGetKey(input, 'latitude');
+        let lng = util.ao.deepGetKey(input, 'longitude');
+        if (lat && lng) {
+            return [lng, lat];
+        } else {
+            return [];
         }
-    }
+    };
 
     const getCoordinatesFromData = (input) => {
         let coordinatesArray = [];
@@ -134,39 +145,36 @@ const MapContainer = ({ isFetching, theme, data }) => {
         );
     }, [ viewport ] );
     
+    const maxCallSize = 1000;
     const getReportButtons = ( reports ) =>
     {
+        console.log( "MapContainer.js :: getReportButtons :: reports = ", reports );
         let coordinatesData = [];
-        let buttons = [];
+        let buttons = []; 
+        reports = reports.slice( 1, maxCallSize + 1 );
         reports.forEach( ( report, index ) =>
         {
             // console.log( "Building map sidebar buttons :: report #", index, " = ", report );
             if (report) {
-                if ("location" in report) {
-                    if (
-                        report.location !== null &&
-                        report.location !== undefined
-                    ) {
-                        // console.log(
-                        //     "Building map sidebar buttons :: location = ",
-                        //     report.location,
-                        // );
-                        coordinatesData.push([
-                            report.location.latitude,
-                            report.location.longitude,
-                        ]);
+                let coords = getCoordinateFromData( report );
+                if ( coords.length > 0 )
+                {
+                    let id = util.ao.deepGetKey( report, 'id' );
+                    coordinatesData.push(coords);
+
+                    if (id) {
                         buttons.push(
                             <button
                                 className="map-sidebar-button"
-                                id={`map-sidebar-button-${report.id}`}
-                                key={`map-sidebar-button-${report.id}`}
+                                id={`map-sidebar-button-${coords[0]}-${coords[1]}-${Math.random() * 100000}`}
+                                key={`map-sidebar-button-${coords[0]}-${coords[1]}-${Math.random() * 100000}`}
                                 // onClick={(event) => {
                                 //     setLatitude(report.location.latitude);
                                 //     setLongitude(report.location.longitude);
                                 // }}
                             >
-                                {report.id}
-                            </button>,
+                                {id}
+                            </button>
                         );
                     }
                 }
@@ -372,3 +380,49 @@ const MapContainer = ({ isFetching, theme, data }) => {
 }
 
 export default MapContainer;
+
+/*
+
+    const getReportButtons = ( reports ) =>
+    {
+        let coordinatesData = [];
+        let buttons = [];
+        reports.forEach( ( report, index ) =>
+        {
+            // console.log( "Building map sidebar buttons :: report #", index, " = ", report );
+            if (report) {
+                if ("location" in report) {
+                    if (
+                        report.location !== null &&
+                        report.location !== undefined
+                    ) {
+                        // console.log(
+                        //     "Building map sidebar buttons :: location = ",
+                        //     report.location,
+                        // );
+                        coordinatesData.push([
+                            report.location.latitude,
+                            report.location.longitude,
+                        ]);
+                        buttons.push(
+                            <button
+                                className="map-sidebar-button"
+                                id={`map-sidebar-button-${report.id}`}
+                                key={`map-sidebar-button-${report.id}`}
+                                // onClick={(event) => {
+                                //     setLatitude(report.location.latitude);
+                                //     setLongitude(report.location.longitude);
+                                // }}
+                            >
+                                {report.id}
+                            </button>,
+                        );
+                    }
+                }
+            }
+        } );
+        // setRenderData( coordinatesData );
+        return buttons;
+    }
+
+*/

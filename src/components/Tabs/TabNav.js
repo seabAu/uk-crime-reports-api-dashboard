@@ -1,5 +1,69 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import * as util from '../../utilities';
+
+const TabNav = props => {
+    const {
+        tabIndex,
+        activeTabIndex,
+        id,
+        label,
+        sublabel,
+        onClick,
+        rounded = false,
+        navBoxShadow = false,
+    } = props;
+
+    const tabNavItemStyles = {
+        // borderRadius: `${rounded ? "8px" : "0px"}`,
+        boxShadow: `${navBoxShadow ? '0 0 5px black' : 'none'}`,
+        // padding: `${spinnerPadding}px`,
+        // textAlign: "right",
+        // transition: "width 1s ease-in-out",
+        // display: "flex",
+        // justifyContent: "flex-end",
+        // alignItems: "center",
+        // top: "50%",
+        // left: "50%",
+        // margin: "-25px 0 0 -25px",
+        // width: "50px",
+        // height: "50px",
+    };
+
+    return (
+        <div
+            style={tabNavItemStyles}
+            className={`tab-nav-item ${
+                activeTabIndex === tabIndex ? 'tab-active' : ''
+            } ${rounded ? 'tab-nav-rounded' : ''}`}
+            onClick={event => {
+                onClick(tabIndex);
+            }}
+            id={id === '' ? '' : id}
+            key={id === '' ? '' : id}
+        >
+            {label && label !== undefined && label !== null && (
+                <div className="tab-nav-item-label">{label ? label : '-'}</div>
+            )}
+            {sublabel && sublabel !== undefined && sublabel !== null && (
+                <div className="tab-nav-item-sublabel">
+                    {sublabel ? sublabel : '-'}
+                </div>
+            )}
+        </div>
+    );
+};
+
+TabNav.propTypes = {
+    tabIndex: PropTypes.number.isRequired,
+    activeTabIndex: PropTypes.number.isRequired,
+    label: PropTypes.string.isRequired,
+    onClick: PropTypes.func.isRequired,
+};
+
+export default TabNav;
+
+/*
 
 class TabNav extends Component {
     static propTypes = {
@@ -34,6 +98,8 @@ class TabNav extends Component {
 }
 
 export default TabNav;
+
+*/
 
 /*
 import React from "react";

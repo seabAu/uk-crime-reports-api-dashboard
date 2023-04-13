@@ -3,8 +3,9 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { FiMenu } from "react-icons/fi";
 import MapPoly from "./MapPoly";
-import { isArray } from "../Utilities/Utilities";
-import { arrayIsValid } from "../Utilities/ObjectUtils";
+
+import * as util from '../../utilities';
+import './map.css';
 
 const MapPolyContainer = ( props ) =>
 {
@@ -67,7 +68,7 @@ const MapPolyContainer = ( props ) =>
         let buttons = [];
         if ( input )
         {
-            if ( arrayIsValid( input ) )
+            if ( util.val.isValidArray( input ) )
             {
                 input.forEach((point, index) => {
                     // console.log(
@@ -101,6 +102,30 @@ const MapPolyContainer = ( props ) =>
         }
         // setRenderData( coordinatesData );
         return buttons;
+    };
+
+    const toggleMapSidebar = (event) => {
+        setShowSidebar(!showSidebar);
+        // Hacky functionality to make sure the map resizes when the sidebar expands or shrinks.
+        var mapCanvas = document.getElementsByClassName("mapboxgl-canvas")[0];
+        var toggleButton = document.getElementById("map-sidebar-toggle-button");
+        if (mapCanvas && toggleButton) {
+            toggleButton.onclick = function () {
+                if (!showSidebar) {
+                    mapCanvas.style.width = "100%";
+                    //showSidebar = true;
+                } else {
+                    mapCanvas.style.width = "100%";
+                    //showSidebar = "bigger";
+                }
+                // setTimeout(() => {
+                //     map.resize();
+                // }, 1000);
+            };
+            // fixButton.onclick = function () {
+            //     map.resize();
+            // };
+        }
     };
 
     // console.log( "MapPolyContainer.js :: Re-render triggered." );
@@ -263,7 +288,7 @@ const MapPolyContainer = ( props ) =>
                             className="menu-toggle-button"
                             id="map-sidebar-toggle-button"
                             style={{ width: 20, height: 20 }}
-                            onClick={() => setShowSidebar(!showSidebar)}
+                            onClick={toggleMapSidebar}
                         />
                     </div>
                     <div className="map-content-header-title">MAPBOX VIEW</div>
@@ -279,6 +304,7 @@ const MapPolyContainer = ( props ) =>
                     //    setLongitude={setLongitude}
                     //    setZoom={ setZoom }></MapProvider>
                     <MapPoly
+                        style={{width: `${100}%`}}
                         isFetching={isFetching}
                         theme={theme}
                         areas={areas}
@@ -305,272 +331,272 @@ const MapPolyContainer = ( props ) =>
 export default MapPolyContainer;
 
 /*
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { FiMenu } from "react-icons/fi";
-import MapPoly from "./MapPoly";
-import { isArray } from "../Utilities/Utilities";
-import { arrayIsValid } from "../Utilities/ObjectUtils";
+    import React, { useState, useEffect } from "react";
+    import axios from "axios";
+    import { FiMenu } from "react-icons/fi";
+    import MapPoly from "./MapPoly";
+    import { isArray } from "../Utilities/Utilities";
+    import { util.val.isValidArray } from "../Utilities/ObjectUtils";
 
-const MapPolyContainer = ( props ) =>
-{
-    const {
-        isFetching,
-        theme,
-        areas,
-        setAreas,
-        coordinates,
-        setCoordinates,
-    } = props;
-    const [latitude, setLatitude] = useState(51.2296);
-    const [longitude, setLongitude] = useState(-2.31653);
-    const [zoom, setZoom] = useState(9);
-    const [viewport, setViewport] = useState({
-        lat: -2.31653, // latitude, // vertical / y-axis
-        lng: 51.2296, // longitude, // horizontal / x-axis
-        zoom: 9, // zoom,
-    });
-    const [showSidebar, setShowSidebar] = useState(true);
-    const [renderData, setRenderData] = useState([]);
-
-    const getCoordinateFromData = (input) => {
-        let locObj;
-        if (input) {
-            if ("location" in input) {
-                // Instance of reports returned by the get-reports-at-location API call.
-                locObj = input.location;
-            } else if ("centre" in input) {
-                // Instance of neighborhood data
-                locObj = input.centre;
-            }
-
-            if (locObj) {
-                if ("latitude" in locObj && "longitude" in locObj) {
-                    return [locObj.latitude, locObj.longitude];
-                }
-            }
-        }
-    };
-
-    const getCoordinateButtonList = ( input ) =>
+    const MapPolyContainer = ( props ) =>
     {
-        let coordinatesData = [];
-        let buttons = [];
-        if ( input )
-        {
-            if ( arrayIsValid( input ) )
-            {
-                input.forEach((point, index) => {
-                    console.log(
-                        "Building map sidebar buttons :: input #",
-                        index,
-                        " = ",
-                        input,
-                    );
-                    if ( point )
-                    {
-                        if ( point.lat && point.lng )
-                        {
-                            // coordinatesData.push([point.lat, point.lng]);
-                            buttons.push(
-                                <button
-                                    className="map-sidebar-button"
-                                    id={`map-sidebar-button-${index}`}
-                                    key={`map-sidebar-button-${index}`}
-                                    // onClick={(event) => {
-                                    //     setLatitude(report.location.latitude);
-                                    //     setLongitude(report.location.longitude);
-                                    // }}
-                                >
-                                    {`[${point.lat.toFixed(3)}, ${point.lng.toFixed(3)}]`}
-                                </button>,
-                            );
-                        }
+        const {
+            isFetching,
+            theme,
+            areas,
+            setAreas,
+            coordinates,
+            setCoordinates,
+        } = props;
+        const [latitude, setLatitude] = useState(51.2296);
+        const [longitude, setLongitude] = useState(-2.31653);
+        const [zoom, setZoom] = useState(9);
+        const [viewport, setViewport] = useState({
+            lat: -2.31653, // latitude, // vertical / y-axis
+            lng: 51.2296, // longitude, // horizontal / x-axis
+            zoom: 9, // zoom,
+        });
+        const [showSidebar, setShowSidebar] = useState(true);
+        const [renderData, setRenderData] = useState([]);
+
+        const getCoordinateFromData = (input) => {
+            let locObj;
+            if (input) {
+                if ("location" in input) {
+                    // Instance of reports returned by the get-reports-at-location API call.
+                    locObj = input.location;
+                } else if ("centre" in input) {
+                    // Instance of neighborhood data
+                    locObj = input.centre;
+                }
+
+                if (locObj) {
+                    if ("latitude" in locObj && "longitude" in locObj) {
+                        return [locObj.latitude, locObj.longitude];
                     }
-                });
+                }
             }
-        }
-        // setRenderData( coordinatesData );
-        return buttons;
+        };
+
+        const getCoordinateButtonList = ( input ) =>
+        {
+            let coordinatesData = [];
+            let buttons = [];
+            if ( input )
+            {
+                if ( util.val.isValidArray( input ) )
+                {
+                    input.forEach((point, index) => {
+                        console.log(
+                            "Building map sidebar buttons :: input #",
+                            index,
+                            " = ",
+                            input,
+                        );
+                        if ( point )
+                        {
+                            if ( point.lat && point.lng )
+                            {
+                                // coordinatesData.push([point.lat, point.lng]);
+                                buttons.push(
+                                    <button
+                                        className="map-sidebar-button"
+                                        id={`map-sidebar-button-${index}`}
+                                        key={`map-sidebar-button-${index}`}
+                                        // onClick={(event) => {
+                                        //     setLatitude(report.location.latitude);
+                                        //     setLongitude(report.location.longitude);
+                                        // }}
+                                    >
+                                        {`[${point.lat.toFixed(3)}, ${point.lng.toFixed(3)}]`}
+                                    </button>,
+                                );
+                            }
+                        }
+                    });
+                }
+            }
+            // setRenderData( coordinatesData );
+            return buttons;
+        };
+
+        // console.log( "MapPolyContainer.js :: Re-render triggered." );
+        return (
+            <div className="map-content-container">
+                <div className={`map-sidebar ${showSidebar ? "" : "hidden"}`}>
+                    <div className="map-sidebar-content">
+                        <div className="map-sidebar-controls-container">
+                            <div className="input-field-container">
+                                <label
+                                    className="input-field-label"
+                                    htmlFor="latitude">
+                                    <h2>Latitude</h2>
+                                    <input
+                                        type="number"
+                                        name="latitude"
+                                        id="latitude"
+                                        value={viewport.lat ?? 0}
+                                        defaultValue={viewport.lat ?? 0}
+                                        placeholder="Latitude"
+                                        label="Latitude"
+                                        className="input-field-number"
+                                        onChange={(event) => {
+                                            setViewport({
+                                                ...viewport,
+                                                lat: event.target.value,
+                                            });
+                                        }}></input>
+                                </label>
+                            </div>
+                            <div className="input-field-container">
+                                <label
+                                    className="input-field-label"
+                                    htmlFor="longitude">
+                                    <h2>Longitude</h2>
+                                    <input
+                                        type="number"
+                                        name="longitude"
+                                        id="longitude"
+                                        value={viewport.lng}
+                                        defaultValue={viewport.lng}
+                                        placeholder="Longitude"
+                                        label="Longitude"
+                                        className="input-field-number"
+                                        onChange={(event) => {
+                                            setViewport({
+                                                ...viewport,
+                                                lng: event.target.value,
+                                            });
+                                        }}></input>
+                                </label>
+                            </div>
+                            <div className="input-field-container">
+                                <label className="input-field-label" htmlFor="zoom">
+                                    <h2>Zoom</h2>
+                                    <input
+                                        type="number"
+                                        name="zoom"
+                                        id="zoom"
+                                        value={viewport.zoom}
+                                        defaultValue={viewport.zoom}
+                                        placeholder="Zoom"
+                                        label="Zoom"
+                                        className="input-field-number"
+                                        onChange={(event) => {
+                                            setViewport({
+                                                ...viewport,
+                                                zoom: event.target.value,
+                                            });
+                                        }}></input>
+                                </label>
+                            </div>
+                            <div className="input-field-container">
+                                <label
+                                    className="input-field-label"
+                                    htmlFor="latitude">
+                                    <h2>Latitude</h2>
+                                    <input
+                                        type="number"
+                                        name="latitude"
+                                        id="latitude"
+                                        value={latitude}
+                                        defaultValue={latitude}
+                                        placeholder="Latitude"
+                                        label="Latitude"
+                                        className="input-field-number"
+                                        onChange={(event) => {
+                                            setLatitude(event.target.value);
+                                        }}></input>
+                                </label>
+                            </div>
+                            <div className="input-field-container">
+                                <label
+                                    className="input-field-label"
+                                    htmlFor="longitude">
+                                    <h2>Longitude</h2>
+                                    <input
+                                        type="number"
+                                        name="longitude"
+                                        id="longitude"
+                                        value={longitude}
+                                        defaultValue={longitude}
+                                        placeholder="Longitude"
+                                        label="Longitude"
+                                        className="input-field-number"
+                                        onChange={(event) => {
+                                            setLongitude(event.target.value);
+                                        }}></input>
+                                </label>
+                            </div>
+                            <div className="input-field-container">
+                                <label className="input-field-label" htmlFor="zoom">
+                                    <h2>Zoom</h2>
+                                    <input
+                                        type="number"
+                                        name="zoom"
+                                        id="zoom"
+                                        value={zoom}
+                                        defaultValue={zoom}
+                                        placeholder="Zoom"
+                                        label="Zoom"
+                                        className="input-field-number"
+                                        onChange={(event) => {
+                                            setZoom(event.target.value);
+                                        }}></input>
+                                </label>
+                            </div>
+                        </div>
+                        {coordinates && !isFetching && (
+                            <div
+                                className="button-list-container"
+                                id="map-sidebar-buttons-container">
+                                <h2 className="button-list-label">
+                                    Chosen points:
+                                </h2>
+                                {getCoordinateButtonList(coordinates)}
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="map-content">
+                    <div className="map-content-header">
+                        <div className="menu-toggle">
+                            <FiMenu
+                                className="menu-toggle-button"
+                                id="map-sidebar-toggle-button"
+                                style={{ width: 20, height: 20 }}
+                                onClick={() => setShowSidebar(!showSidebar)}
+                            />
+                        </div>
+                        <div className="map-content-header-title">MAPBOX VIEW</div>
+                    </div>
+                    {
+                        //<MapProvider
+                        //    data={ data }
+                        //    renderData={renderData}
+                        //    latitude={latitude}
+                        //    longitude={longitude}
+                        //    zoom={zoom}
+                        //    setLatitude={setLatitude}
+                        //    setLongitude={setLongitude}
+                        //    setZoom={ setZoom }></MapProvider>
+                        <MapPoly
+                            isFetching={isFetching}
+                            theme={theme}
+                            areas={areas}
+                            setAreas={setAreas}
+                            coordinates={coordinates}
+                            setCoordinates={setCoordinates}
+                            showSidebar={showSidebar}
+                            viewport={viewport}
+                            setViewport={setViewport}></MapPoly>
+                    }
+                </div>
+            </div>
+        );
     };
 
-    // console.log( "MapPolyContainer.js :: Re-render triggered." );
-    return (
-        <div className="map-content-container">
-            <div className={`map-sidebar ${showSidebar ? "" : "hidden"}`}>
-                <div className="map-sidebar-content">
-                    <div className="map-sidebar-controls-container">
-                        <div className="input-field-container">
-                            <label
-                                className="input-field-label"
-                                htmlFor="latitude">
-                                <h2>Latitude</h2>
-                                <input
-                                    type="number"
-                                    name="latitude"
-                                    id="latitude"
-                                    value={viewport.lat ?? 0}
-                                    defaultValue={viewport.lat ?? 0}
-                                    placeholder="Latitude"
-                                    label="Latitude"
-                                    className="input-field-number"
-                                    onChange={(event) => {
-                                        setViewport({
-                                            ...viewport,
-                                            lat: event.target.value,
-                                        });
-                                    }}></input>
-                            </label>
-                        </div>
-                        <div className="input-field-container">
-                            <label
-                                className="input-field-label"
-                                htmlFor="longitude">
-                                <h2>Longitude</h2>
-                                <input
-                                    type="number"
-                                    name="longitude"
-                                    id="longitude"
-                                    value={viewport.lng}
-                                    defaultValue={viewport.lng}
-                                    placeholder="Longitude"
-                                    label="Longitude"
-                                    className="input-field-number"
-                                    onChange={(event) => {
-                                        setViewport({
-                                            ...viewport,
-                                            lng: event.target.value,
-                                        });
-                                    }}></input>
-                            </label>
-                        </div>
-                        <div className="input-field-container">
-                            <label className="input-field-label" htmlFor="zoom">
-                                <h2>Zoom</h2>
-                                <input
-                                    type="number"
-                                    name="zoom"
-                                    id="zoom"
-                                    value={viewport.zoom}
-                                    defaultValue={viewport.zoom}
-                                    placeholder="Zoom"
-                                    label="Zoom"
-                                    className="input-field-number"
-                                    onChange={(event) => {
-                                        setViewport({
-                                            ...viewport,
-                                            zoom: event.target.value,
-                                        });
-                                    }}></input>
-                            </label>
-                        </div>
-                        <div className="input-field-container">
-                            <label
-                                className="input-field-label"
-                                htmlFor="latitude">
-                                <h2>Latitude</h2>
-                                <input
-                                    type="number"
-                                    name="latitude"
-                                    id="latitude"
-                                    value={latitude}
-                                    defaultValue={latitude}
-                                    placeholder="Latitude"
-                                    label="Latitude"
-                                    className="input-field-number"
-                                    onChange={(event) => {
-                                        setLatitude(event.target.value);
-                                    }}></input>
-                            </label>
-                        </div>
-                        <div className="input-field-container">
-                            <label
-                                className="input-field-label"
-                                htmlFor="longitude">
-                                <h2>Longitude</h2>
-                                <input
-                                    type="number"
-                                    name="longitude"
-                                    id="longitude"
-                                    value={longitude}
-                                    defaultValue={longitude}
-                                    placeholder="Longitude"
-                                    label="Longitude"
-                                    className="input-field-number"
-                                    onChange={(event) => {
-                                        setLongitude(event.target.value);
-                                    }}></input>
-                            </label>
-                        </div>
-                        <div className="input-field-container">
-                            <label className="input-field-label" htmlFor="zoom">
-                                <h2>Zoom</h2>
-                                <input
-                                    type="number"
-                                    name="zoom"
-                                    id="zoom"
-                                    value={zoom}
-                                    defaultValue={zoom}
-                                    placeholder="Zoom"
-                                    label="Zoom"
-                                    className="input-field-number"
-                                    onChange={(event) => {
-                                        setZoom(event.target.value);
-                                    }}></input>
-                            </label>
-                        </div>
-                    </div>
-                    {coordinates && !isFetching && (
-                        <div
-                            className="button-list-container"
-                            id="map-sidebar-buttons-container">
-                            <h2 className="button-list-label">
-                                Chosen points:
-                            </h2>
-                            {getCoordinateButtonList(coordinates)}
-                        </div>
-                    )}
-                </div>
-            </div>
-            <div className="map-content">
-                <div className="map-content-header">
-                    <div className="menu-toggle">
-                        <FiMenu
-                            className="menu-toggle-button"
-                            id="map-sidebar-toggle-button"
-                            style={{ width: 20, height: 20 }}
-                            onClick={() => setShowSidebar(!showSidebar)}
-                        />
-                    </div>
-                    <div className="map-content-header-title">MAPBOX VIEW</div>
-                </div>
-                {
-                    //<MapProvider
-                    //    data={ data }
-                    //    renderData={renderData}
-                    //    latitude={latitude}
-                    //    longitude={longitude}
-                    //    zoom={zoom}
-                    //    setLatitude={setLatitude}
-                    //    setLongitude={setLongitude}
-                    //    setZoom={ setZoom }></MapProvider>
-                    <MapPoly
-                        isFetching={isFetching}
-                        theme={theme}
-                        areas={areas}
-                        setAreas={setAreas}
-                        coordinates={coordinates}
-                        setCoordinates={setCoordinates}
-                        showSidebar={showSidebar}
-                        viewport={viewport}
-                        setViewport={setViewport}></MapPoly>
-                }
-            </div>
-        </div>
-    );
-};
-
-export default MapPolyContainer;
+    export default MapPolyContainer;
 
 */
 

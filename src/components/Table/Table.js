@@ -3,20 +3,11 @@ import TableBody from "./TableBody";
 import TableDownload from "./TableDownload";
 import TableHead from "./TableHead";
 import TablePagination from "./TablePagination";
-
-import {
-    SanitizeObj,
-    SanitizeObjArray,
-    SpliceObjArray,
-    flatMapObjText,
-    isValid,
-    getObjKeys,
-    arrayIsValid,
-    filterDataFast,
-    flattenObjArray,
-} from "../Utilities/ObjectUtils.js";
-import Select from "../Form/Select";
 import TableFoot from "./TableFoot";
+import Select from '../Form/Select';
+
+import * as util from '../../utilities';
+import './table.css';
 
 function Table(props) {
     // The tableData contains an array of objects. To construct the header, we use just the first object in the array and grab its keys' names.
@@ -107,15 +98,15 @@ function Table(props) {
     useEffect( () =>
     {
         // Update if the data, filters, or any data-altering options are changed.
-        if ( arrayIsValid( tableData, true ) )
+        if ( util.val.isValidArray( tableData, true ) )
         {
             let temp = showFlattened
-                ? flattenObjArray(appendIndex(tableData))
+                ? util.ao.flattenObjArray(appendIndex(tableData))
                 : appendIndex(tableData);
             
-            setHeaders(getObjKeys(temp[0]));
+            setHeaders(util.ao.getObjKeys(temp[0]));
             // setRenderData(filterData(temp, filters));
-            setRenderData(filterDataFast(temp, filters));
+            setRenderData(util.ao.filterDataFast(temp, filters));
         }
     }, [tableData, filters, showFlattened]);
     
@@ -200,12 +191,12 @@ function Table(props) {
 
     return (
         <div className="table-container">
-            <div className="table-options-container">
+            <div className="options-container">
                 <TableDownload
                     dataName={dataName}
                     tableData={tableData}
                     downloadFileType="csv"></TableDownload>
-                <div className="table-options">
+                <div className="input-group">
                     <Select
                         height={50}
                         width={100}
@@ -235,7 +226,7 @@ function Table(props) {
                                 }
                             }
                         }}></Select>
-                    {headers && arrayIsValid(tableData, true) && (
+                    {headers && util.val.isValidArray(tableData, true) && (
                         <Select
                             height={50}
                             width={100}
@@ -246,7 +237,7 @@ function Table(props) {
                             value={columnsVisible}
                             unsetOption="-"
                             optionsConfig={
-                                headers // getObjKeys(tableData[0])
+                                headers // util.ao.getObjKeys(tableData[0])
                                 //.map( ( option, index ) =>
                                 //{
                                 //return {

@@ -1,12 +1,6 @@
 import React from "react";
 import { ExportToCsv } from "export-to-csv";
-import { 
-    SanitizeObj,
-    SanitizeObjArray,
-    SpliceObjArray,
-    flattenObj,
-    flattenObjArray,
-    flatMapObjText } from "../Utilities/ObjectUtils";
+import * as util from '../../utilities';
 
 function TableDownload ( { dataName, tableData, downloadFileType } )
 {
@@ -26,7 +20,7 @@ function TableDownload ( { dataName, tableData, downloadFileType } )
 
     const download = ( data, filetype ) =>
     {
-        const flattenedData = flattenObjArray(data);
+        const flattenedData = util.ao.flattenObjArray(data);
         // console.log(
         //     "TableDownload: ",
         //     "\nData = ",

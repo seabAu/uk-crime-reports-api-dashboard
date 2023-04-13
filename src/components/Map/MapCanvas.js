@@ -4,6 +4,7 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 // import "mapbox-gl/dist/mapbox-gl.css";
 import "./mapbox-gl.css";
 import "./mapbox-gl-draw.css";
+import './map.css';
 // import "./Map.css";
 
 // import "https://unpkg.com/@turf/turf@6/turf.min.js";
@@ -13,15 +14,10 @@ import "./mapbox-gl-draw.css";
 // import "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.0/mapbox-gl-draw.css";
 import Tooltip from "./Tooltip";
 import ReactDOM from "react-dom/client";
-import {
-    arrayIsValid,
-    flatMapObjText,
-    has,
-    obj2List,
-    objArray2List,
-} from "../Utilities/ObjectUtils";
-import { obj2ListText } from "../Utilities/DOMUtilities";
-import * as gutil from "../Utilities/GeoUtilities";
+
+import * as util from '../../utilities';
+
+
 import { MAPBOX_API_KEY_PK } from "../../global/env";
 mapboxgl.accessToken = MAPBOX_API_KEY_PK;
 
@@ -55,10 +51,10 @@ const MapCanvas = (props) => {
     const [selectedFocusIndex, setSelectedFocusIndex] = useState(0);
 
     const [pointsGeoJson, setPointsGeoJson] = useState(
-        gutil.points2geojsonFeatures(coordinates),
+        util.geo.points2geojsonFeatures(coordinates),
     );
     const [geoJsonFeatures, setGeoJsonFeatures] = useState(
-        gutil.data2geojsonfeatures(geometry),
+        util.geo.data2geojsonfeatures(geometry),
     );
 
     // const [map, setMap] = useState(data2geojson(data));
@@ -108,7 +104,7 @@ const MapCanvas = (props) => {
             "MapCanvas.js :: Coordinates changed, updating geo json :: ",
             coordinates,
         );
-        setPointsGeoJson(gutil.points2geojsonFeatures(coordinates));
+        setPointsGeoJson(util.geo.points2geojsonFeatures(coordinates));
     }, [coordinates]);
 
     useEffect(() => {
@@ -116,7 +112,7 @@ const MapCanvas = (props) => {
             "MapCanvas.js :: Areas changed, updating geo json :: ",
             areas,
         );
-        setPointsGeoJson(gutil.points2geojsonFeatures(areas));
+        setPointsGeoJson(util.geo.points2geojsonFeatures(areas));
     }, [areas]);
 
     /*  // mapbox-gl-draw generated featurecollection: 
@@ -229,7 +225,7 @@ const MapCanvas = (props) => {
 
         console.log("MapCanvas.js :: UpdateAreas() :: data = ", data);
         //
-        if (has(data, "features")) {
+        if (util.ao.has(data, "features")) {
             let newAreas = [];
             let features = data.features;
             console.log(
@@ -237,11 +233,11 @@ const MapCanvas = (props) => {
                 data,
                 features,
             );
-            if (arrayIsValid(features, true)) {
+            if (util.val.isValidArray(features, true)) {
                 features.forEach((feature, index) => {
                     let area = {
                         id: feature.id,
-                        index: arrayIsValid(areas, true) ? areas.length + 1 : 0,
+                        index: util.val.isValidArray(areas, true) ? areas.length + 1 : 0,
                         geometry: {
                             type: "polygon",
                             center: {
@@ -266,11 +262,11 @@ const MapCanvas = (props) => {
 
                     // Get coordinates and format as pointobjects we can use elsewhere.
                     let areacoordinates = [];
-                    if (arrayIsValid(polycoordinates, true)) {
+                    if (util.val.isValidArray(polycoordinates, true)) {
                         polycoordinates.forEach((point, index) => {
-                            if (gutil.isPointArray(point)) {
+                            if (util.geo.isPointArray(point)) {
                                 areacoordinates.push(
-                                    gutil.pointArray2PointObj(point),
+                                    util.geo.pointArray2PointObj(point),
                                 );
                             }
                         });
@@ -304,7 +300,7 @@ const MapCanvas = (props) => {
             //         0.001,
             //     );
             // });
-            mapCoordinates.current = gutil.filterNearby(
+            mapCoordinates.current = util.geo.filterNearby(
                 mapCoordinates.current,
                 newCoords,
             );
@@ -313,7 +309,7 @@ const MapCanvas = (props) => {
             let found = false;
             mapCoordinates.current.forEach((point) => {
                 if (point) {
-                    if (gutil.isNearby(point, newCoords, 0.001)) {
+                    if (util.geo.isNearby(point, newCoords, 0.001)) {
                         found = true;
                     }
                 }
@@ -330,7 +326,7 @@ const MapCanvas = (props) => {
                 // Currently in coordinates list, so remove it and delete any markers associated with it.
                 let temp = mapCoordinates.current;
                 temp = temp.filter((point) => {
-                    return !gutil.isNearby(point, newCoords, 0.001);
+                    return !util.geo.isNearby(point, newCoords, 0.001);
                 });
                 mapCoordinates.current = temp;
                 setCoordinates(mapCoordinates.current);
@@ -340,7 +336,7 @@ const MapCanvas = (props) => {
                 mapCoordinates.current = [...mapCoordinates.current, newCoords];
                 // createMarker(points2geojsonFeatures([newCoords])[0]);
                 setCoordinates(mapCoordinates.current);
-                return gutil.points2geojsonFeatures([newCoords]);
+                return util.geo.points2geojsonFeatures([newCoords]);
             }
             // Update the geoJson and rerender the markers.
             // let newGeoJson = points2geojsonFeatures(mapCoordinates.current);
@@ -536,7 +532,7 @@ const MapCanvas = (props) => {
                 let markerCoordinates = coords; // marker.geometry.coordinates;
                 let temp = mapCoordinates.current;
                 temp = temp.filter((point) => {
-                    return !gutil.isNearby(
+                    return !util.geo.isNearby(
                         [point.lat, point.lng],
                         markerCoordinates,
                         0.001,
@@ -567,7 +563,7 @@ const MapCanvas = (props) => {
                     ", new position geojson = ",
                     clickPosGeoJson,
                 );
-                if (arrayIsValid(clickPosGeoJson, true)) {
+                if (util.val.isValidArray(clickPosGeoJson, true)) {
                     // setCoordinates(mapCoordinates.current);
                     createMarker(clickPosGeoJson[0]);
                 }
@@ -636,9 +632,9 @@ const MapCanvas = (props) => {
             );
             debugComponentProps();
 
-            if (arrayIsValid(coordinates, true)) {
+            if (util.val.isValidArray(coordinates, true)) {
                 if (!pointsGeoJson) {
-                    setPointsGeoJson(gutil.points2geojsonFeatures(coordinates));
+                    setPointsGeoJson(util.geo.points2geojsonFeatures(coordinates));
                 }
                 if (pointsGeoJson) {
                     // Create selected-coordinate-points layer.
@@ -676,7 +672,7 @@ const MapCanvas = (props) => {
                         createMarker(marker);
                     });
                 }
-            } // End of arrayIsValid(coordinates)
+            } // End of util.val.isValidArray(coordinates)
         }); // end of map.on("load").
 
         //////////////// Generc stuff below ///////////////
@@ -792,7 +788,7 @@ const MapCanvas = (props) => {
             mapDatatype,
             "\n",
             "TEST :: Area geo-obj format to area geo-array format = ",
-            gutil.geoObj2geoArray(areas[0]),
+            util.geo.geoObj2geoArray(areas[0]),
         );
 
         // mapRef.current.map.easeTo({

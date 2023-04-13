@@ -1,6 +1,7 @@
 import React from "react";
 import ProgressBar from "./ProgressBar";
 import Spinner from "./Spinner";
+import './loader.css';
 
 const Loader = ({ progressInfo }) => {
     const getProgressBars = (input) => {

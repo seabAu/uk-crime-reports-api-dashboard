@@ -1,14 +1,18 @@
 import React from "react";
+import './formelements.css';
 
 function Checkbox(props) {
     const {
-        inputProps,
         label,
         id,
         name,
         onChange,
         disabled,
         required,
+        checked,
+        defaultChecked,
+        tabIndex,
+        classes,
     } = props;
 
     const debugReadProps = () => {
@@ -23,14 +27,20 @@ function Checkbox(props) {
                 <p>{label ?? name}</p>
                 <input
                     type="checkbox"
-                    className={`input-field-checkbox`}
+                    // onChange={}
+                />
+                <input
+                    type="checkbox"
+                    className={`input-field-checkbox ${classes ? classes : ''}`}
                     name={name ?? `checkbox-input`}
                     key={id ?? `checkbox-input`}
                     id={id ?? `checkbox-input`}
-                    {...inputProps}
                     onChange={onChange}
-                    required={required ?? ""}
-                    disabled={disabled ?? ""}
+                    checked={`${checked ? 'checked' : ''}`}
+                    defaultChecked={`${defaultChecked ? 'checked' : ''}`}
+                    tabindex={`${tabIndex ? tabIndex : ''}`}
+                    required={required ?? ''}
+                    disabled={disabled ?? ''}
                 />
             </label>
         </div>

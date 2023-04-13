@@ -1,5 +1,6 @@
 import React from "react";
-import { arrayIsValid } from "../Utilities/ObjectUtils";
+import './formelements.css';
+import * as util from '../../utilities';
 
 function Select(props) {
     const {
@@ -24,7 +25,7 @@ function Select(props) {
     };
 
     const isOptionSelected = (optionValue, selected) => {
-        if (optionValue && arrayIsValid(selected)) {
+        if (optionValue && util.val.isValidArray(selected)) {
             if ( selected.includes(optionValue) )
             {
                 return true;

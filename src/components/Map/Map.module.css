@@ -1,3 +1,4 @@
+@import '../../vars.css';
 .mapboxgl-map {
     font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
     overflow: hidden;
@@ -382,7 +383,7 @@ a.mapboxgl-ctrl-logo.mapboxgl-compact {
     white-space: break-spaces;
     overflow-wrap: break-word !important;
 }
-.mapboxgl-popup-content *, .mapboxgl-popup-content > ul {
+.mapboxgl-popup-content *, .mapboxgl-popup-content>ul {
     white-space: break-spaces;
     overflow-wrap: break-word !important;
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { cleanInvalid } from "../Utilities/ObjectUtils";
+import * as util from '../../utilities';
 import TableSubTable from "./TableSubTable";
 
 function TableBody(props) {
@@ -70,7 +70,7 @@ function TableBody(props) {
                                                     ? " col-hidden"
                                                     : ""
                                             }`}>
-                                            {cleanInvalid(objValue, "-")}
+                                            {util.ao.cleanInvalid(objValue, "-")}
                                         </td>
                                     );
                                 }

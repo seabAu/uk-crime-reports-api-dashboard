@@ -1,5 +1,4 @@
 import React from "react";
-import { deepSearchObject } from "../Utilities/ObjectUtils";
 
 const gDBName = "uk-crime-api-database";
 

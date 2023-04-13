@@ -1,7 +1,6 @@
 import React from "react";
-import { timeElapsed, timeEstimate } from "../Utilities/Utilities";
-const ProgressBar = ( props ) =>
-{
+import * as util from '../../utilities';
+const ProgressBar = props => {
     const {
         id,
         // key,
@@ -31,17 +30,17 @@ const ProgressBar = ( props ) =>
     const roundToDecimal = (value, decimal_places) => {
         // return Math.round( ( value + Number.EPSILON ) * 100 ) / 100;
         return +(
-            Math.round(value + "e+" + decimal_places) +
-            "e-" +
+            Math.round(value + 'e+' + decimal_places) +
+            'e-' +
             decimal_places
         );
     };
     const containerStyles = {
         padding: `10px`,
         margin: `0px`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
     };
 
     const bgStyles = {
@@ -52,32 +51,32 @@ const ProgressBar = ( props ) =>
         border: `${border}`,
         padding: `${padding}px`,
         margin: `${margin}`,
-        boxShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
+        boxShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
     };
 
     const fillerStyles = {
-        height: "100%",
+        height: '100%',
         width: `${Math.floor((currValue / endValue) * 100)}%`,
         padding: `${fillerPadding}px`,
         margin: `${fillerMargin}px`,
         backgroundColor: fillercolor,
-        borderRadius: "inherit",
-        transition: "width 1s ease-in-out",
-        display: "flex",
-        justifyContent: "flex-end",
-        alignItems: "center",
-        textAlign: "right",
-        verticalAlign: "middle",
+        borderRadius: 'inherit',
+        transition: 'width 1s ease-in-out',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        textAlign: 'right',
+        verticalAlign: 'middle',
     };
 
     const labelStyles = {
         padding: `${padding}px`,
         textShadow: `rgba(0, 0, 0, 0.8) 0px 1px`,
         color: `${labelColor}`,
-        fontWeight: "bold",
-        fontSize: "0.75rem",
+        fontWeight: 'bold',
+        fontSize: '0.75rem',
     };
 
     const getProgressBar = () => {
@@ -85,33 +84,34 @@ const ProgressBar = ( props ) =>
             <div
                 className="loader-progress-container"
                 style={containerStyles}
-                id={id ?? ""}
-                key={id ?? ""}>
+                id={id ?? ''}
+                key={id ?? ''}
+            >
                 {message && (
                     <div className="loader-progress-message-container">
                         {message && (
                             <h2 className="loader-progress-message">
                                 {message}
-                            </h2>      
+                            </h2>
                         )}
                         {startTime && currTime && (
                             <>
                                 <h2 className="loader-time-elapsed">
-                                    {timeElapsed(
+                                    {util.time.timeElapsed(
                                         startTime.getTime(),
                                         currTime.getTime()
                                             ? currTime.getTime()
-                                            : new Date().getTime(),
-                                    )}{" "}
+                                            : new Date().getTime()
+                                    )}{' '}
                                     Elapsed
                                 </h2>
                                 <h2 className="loader-time-elapsed">
-                                    {timeEstimate(
+                                    {util.time.timeEstimate(
                                         startTime.getTime(),
                                         new Date().getTime(),
                                         currValue,
-                                        endValue,
-                                    )}{" "}
+                                        endValue
+                                    )}{' '}
                                     Left
                                 </h2>
                             </>
@@ -137,12 +137,14 @@ const ProgressBar = ( props ) =>
                     <div className="progress-bar-container" style={bgStyles}>
                         <div
                             className="progress-bar-filler"
-                            style={fillerStyles}>
+                            style={fillerStyles}
+                        >
                             <span
                                 className="progress-bar-label"
-                                style={labelStyles}>{`${Math.round(
+                                style={labelStyles}
+                            >{`${Math.round(
                                 (currValue / (endValue === 0 ? 1 : endValue)) *
-                                    100,
+                                    100
                             )}%`}</span>
                         </div>
                     </div>

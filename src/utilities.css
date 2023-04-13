@@ -1,3 +1,4 @@
+@import './vars.css';
 :root {
     --input-text-size: 0.75rem;
 }
@@ -167,7 +168,7 @@ a:hover {
     margin: 0;
     padding: 2px 4px;
     width: 100%;
-    flex-grow: 1;
+    flex: 0 1 auto;
 }
 .input-field .input-field-label input {
     margin: 0;
@@ -199,6 +200,7 @@ a:hover {
     display: flex;
     align-items: center;
     flex-direction: row-reverse;
+    justify-content: flex-end;
 }
 .input-field.input-field-inline .input-field-label .input-field-label-text {
     min-width: 1rem !important;

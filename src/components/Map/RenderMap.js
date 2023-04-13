@@ -1,18 +1,22 @@
 import React, { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
+// import "https://unpkg.com/@turf/turf@6/turf.min.js";
+// import "https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css";
+// const mapboxgl = require("https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js");
+
+// import DrawControl  from "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.0/mapbox-gl-draw.js";
+// import "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.0/mapbox-gl-draw.css";
 // import "mapbox-gl/dist/mapbox-gl.css";
 // import "./Map.css";
 import Tooltip from "./Tooltip";
 import ReactDOM from "react-dom/client";
-import {
-    flatMapObjText,
-    obj2List,
-    objArray2List,
-} from "../Utilities/ObjectUtils";
-import { obj2ListText } from "../Utilities/DOMUtilities";
 
-import { MAPBOX_API_KEY_PK } from "../../global/env";
-mapboxgl.accessToken = MAPBOX_API_KEY_PK;
+import * as util from '../../utilities';
+mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default; // eslint-disable-line
+
+// import { MAPBOX_API_KEY_PK } from "../../global/env";
+mapboxgl.accessToken =
+    "pk.eyJ1Ijoic2JzaWJ5bGxpbmUiLCJhIjoiY2xlajgxdWplMDh1NzN1cDd0cDl6dXk1aiJ9.buwlClZxBHJqe-0OOXdOVQ";
 
 const RenderMap = ({
     data,
@@ -41,59 +45,43 @@ const RenderMap = ({
         if (data) {
             if (data.length > 0) {
                 if (Array.isArray(data)) {
-                    data.forEach((report, index) => {
-                        // console.log( "MapContent.js :: Data item = ", item );
+                    data.forEach((item, index) => {
                         // let pointCoordinates = [];
-                        let locObj;
-                        if (report) {
-                            if ("location" in report) {
-                                // Instance of reports returned by the get-reports-at-location API call.
-                                locObj = report.location;
-                            } else if ("centre" in report) {
-                                // Instance of neighborhood data
-                                locObj = report.centre;
-                            }
-                            // console.log(
-                            //     "RENDERMAP.JS :: onLOAD :: report = ",
-                            //     report,
-                            //     ",report.location = ",
-                            //     report.location,
-                            //     ", locObj = ",
-                            //     locObj,
-                            // );
-                        }
-
+                        let lat = util.ao.deepGetKey(item, 'latitude');
+                        let lng = util.ao.deepGetKey(item, 'longitude');
+                        // console.log( 'RenderMap.js :: data2geojson :: Data item = ', item, ", lat = ", lat, ", lng = ", lng );
+                        
                         // Check that we have coordinates at this point. If we do, proceed with building the mouseover info.
-                        if (locObj) {
-                            if ("latitude" in locObj && "longitude" in locObj) {
-                                let desc = obj2ListText( report );
-                                if ( desc )
-                                {
-                                    // console.log( "Desc = ", desc );
-                                    points.push({
-                                        type: "Feature",
-                                        properties: {
-                                            description: desc,
-                                            // description: `<ul className="obj-list">${ properties.join( "" ) }</ul>`,
-                                            // objArray2List(report).toString(),
-                                        },
-                                        geometry: {
-                                            type: "Point",
-                                            coordinates: [
-                                                parseFloat(locObj.longitude) +
-                                                    0.0001 * Math.random(),
-                                                parseFloat(locObj.latitude) +
-                                                    0.0001 * Math.random(),
-                                            ],
-                                        },
-                                    });
-                                    // console.log(
-                                    //     "RENDERMAP.JS :: onLOAD :: points = ",
-                                    //     points,
-                                    //     // "properties.join('<li>') = ",
-                                    //     // properties.join("<li>"),
-                                    // );
-                                }
+                        if (lat && lng) {
+                            let desc = util.dom.obj2ListText( item );
+                            // console.log(
+                            //     'RenderMap.js :: data2geojson :: desc = ',
+                            //     util.dom.obj2ListText(item)
+                            // );
+                            if ( desc )
+                            {
+                                // console.log( "Desc = ", desc );
+                                points.push({
+                                    type: "Feature",
+                                    properties: {
+                                        description: desc,
+                                        // description: `<ul className="obj-list">${ properties.join( "" ) }</ul>`,
+                                        // objArray2List(report).toString(),
+                                    },
+                                    geometry: {
+                                        type: "Point",
+                                        coordinates: [
+                                            parseFloat(lng) + 0.0001 * Math.random(),
+                                            parseFloat(lat) + 0.0001 * Math.random(),
+                                        ],
+                                    },
+                                });
+                                // console.log(
+                                //     "RENDERMAP.JS :: onLOAD :: points = ",
+                                //     points,
+                                //     // "properties.join('<li>') = ",
+                                //     // properties.join("<li>"),
+                                // );
                             }
                         }
                     });
@@ -114,22 +102,33 @@ const RenderMap = ({
     const [selectedFocusIndex, setSelectedFocusIndex] = useState(0);
 
     const getCoordinateFromData = (input) => {
-        let locObj;
-        if (input) {
-            if ("location" in input) {
-                // Instance of reports returned by the get-reports-at-location API call.
-                locObj = input.location;
-            } else if ("centre" in input) {
-                // Instance of neighborhood data
-                locObj = input.centre;
-            }
-
-            if (locObj) {
-                if ("longitude" in locObj && "latitude" in locObj) {
-                    return [locObj.longitude, locObj.latitude];
-                }
-            }
+        let lat = util.ao.deepGetKey(input, 'latitude');
+        let lng = util.ao.deepGetKey( input, 'longitude' );
+        if ( lat && lng )
+        {
+            return [
+                lng, lat
+            ];
+        } else
+        {
+            return [];
         }
+        // let locObj;
+        // if (input) {
+        //     if ("location" in input) {
+        //         // Instance of reports returned by the get-reports-at-location API call.
+        //         locObj = input.location;
+        //     } else if ("centre" in input) {
+        //         // Instance of neighborhood data
+        //         locObj = input.centre;
+        //     }
+        // 
+        //     if (locObj) {
+        //         if ("longitude" in locObj && "latitude" in locObj) {
+        //             return [locObj.longitude, locObj.latitude];
+        //         }
+        //     }
+        // }
     };
 
     // const [map, setMap] = useState(data2geojson(data));
@@ -180,7 +179,8 @@ const RenderMap = ({
                     ", initialViewport = ",
                     initialViewport,
                 );
-    }, [viewport] );
+    }, [ viewport ] );
+    
     useEffect(() => {
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
@@ -688,7 +688,7 @@ export default RenderMap;
 
                                 if ( properties )
                                 {
-                                    let desc = obj2ListText( report );
+                                    let desc = util.dom.obj2ListText( report );
                                     console.log( "Desc = ", desc );
                                     points.push({
                                         type: "Feature",
